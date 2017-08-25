@@ -105,6 +105,7 @@ class WaypointUpdater(object):
         if self.currentWPIndex == -1:
             return 0
 
+        closestWpIndex= -1
         ## TO DO: If current wp is within 200 indices away from the end of lap, append the first entries to the closest wp to start the
         ## next lap
 
@@ -123,6 +124,10 @@ class WaypointUpdater(object):
                 closestWpIndex = i
                 break
 
+        if closestWpIndex == -1:
+            ## No waypoint is within the +/- 45 degree heading. Vehicle probably overshot the previous way point by a lot. Attempt to go back to the previous way point
+            closestWpIndex = self.currentWPIndex
+            
         return closestWpIndex
 
     def closestWaypointIndex(self):
