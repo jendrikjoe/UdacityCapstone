@@ -38,9 +38,10 @@ class WaypointUpdater(object):
         self.yaw = 0
         self.speed = 0
         self.targetLane = 1
+        self.currentWPIndex = -1
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-        
+
 
         # TODO: Add other member variables you need below
 
@@ -66,6 +67,7 @@ class WaypointUpdater(object):
         euler = tf.transformations.euler_from_quaternion(orientation)
         self.yaw = euler[2]
         nextWpIndex = self.getNextWpIndex()
+        self.currentWPIndex = nextWpIndex
         usedWps = []
         for i in np.arange(nextWpIndex, nextWpIndex+LOOKAHEAD_WPS):
             if(i < len(self.baseWaypoints)-1): usedWps.append(self.baseWaypoints[i])
@@ -84,11 +86,11 @@ class WaypointUpdater(object):
         lane.header.stamp = rospy.Time(0)
         lane.waypoints = msgWps
         self.final_waypoints_pub.publish(lane)
-        
+
     @staticmethod
     def quaternion_from_yaw(yaw):
         return tf.transformations.quaternion_from_euler(0., 0., yaw)
-    
+
     def waypoints_cb(self, lane):
         if np.any(self.baseWaypoints == None):
             self.baseWaypoints = []
@@ -98,27 +100,43 @@ class WaypointUpdater(object):
                     self.getY(waypoint),
                     self.getVelocity(waypoint),
                     self.getYaw(waypoint)])
-                
-            
+
+
     def getNextWpIndex(self):
-        
-        closestWpIndex = self.closestWaypointIndex()
-    
-        x = self.baseWaypoints[closestWpIndex][0]
-        y = self.baseWaypoints[closestWpIndex][1]
-    
-        heading = math.atan2( (y-self.position[1]),(x-self.position[0]))
-        angle = abs(self.yaw-heading)
-    
-        if(angle > np.pi/4): closestWpIndex+=1
-    
+        ## For the very first waypoint
+        if self.currentWPIndex == -1:
+            return 0
+
+        closestWpIndex= -1
+        ## TO DO: If current wp is within 200 indices away from the end of lap, append the first entries to the closest wp to start the
+        ## next lap
+
+
+        ## Compute current distance & heading from previous wp
+        ## Get the wp that is closest in heading and distance to the current wp
+        dist_prev = WaypointUpdater.distance(self.position[0],self.position[1], self.baseWaypoints[self.currentWPIndex][0], self.baseWaypoints[self.currentWPIndex][1])
+        heading = math.atan2( (self.baseWaypoints[self.currentWPIndex][1]-self.position[1]),(self.baseWaypoints[self.currentWPIndex][0]-self.position[0]))
+        for i in range(self.currentWPIndex+1,len(self.baseWaypoints)):
+            dist2NextWP = WaypointUpdater.distance(self.baseWaypoints[i][0],self.baseWaypoints[i][1], self.baseWaypoints[self.currentWPIndex][0], self.baseWaypoints[self.currentWPIndex][1])
+            heading2NextWP = math.atan2( (self.baseWaypoints[i][1]-self.position[1]),(self.baseWaypoints[i][0]-self.position[0]))
+
+            if abs(heading-heading2NextWP) <= pi/4:
+                ## Next way point is within +/- 45 degree heading from current heading.
+                ## Choose this. Else keep looking
+                closestWpIndex = i
+                break
+
+        if closestWpIndex == -1:
+            ## No waypoint is within the +/- 45 degree heading. Vehicle probably overshot the previous way point by a lot. Attempt to go back to the previous way point
+            closestWpIndex = self.currentWPIndex
+            
         return closestWpIndex
-    
+
     def closestWaypointIndex(self):
 
         closestLen = 100000. #large number
         closestWaypoint = 0
-        for i in range(len(self.baseWaypoints)):
+        for i in range(self.currentWPIndex,len(self.baseWaypoints)):
             x = self.baseWaypoints[i][0]
             y = self.baseWaypoints[i][1]
             dist = WaypointUpdater.distance(self.position[0],self.position[1], x, y)
@@ -131,7 +149,7 @@ class WaypointUpdater(object):
     @staticmethod
     def distance(x1, y1, x2, y2):
         return np.sqrt((x1-x2)**2+(y1-y2)**2)
-        
+
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -144,7 +162,7 @@ class WaypointUpdater(object):
     @staticmethod
     def getX(waypoint):
         return waypoint.pose.pose.position.x
-    
+
     @staticmethod
     def getYaw(waypoint):
         return waypoint.pose.pose.orientation.z
