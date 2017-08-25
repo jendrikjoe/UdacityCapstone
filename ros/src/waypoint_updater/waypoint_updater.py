@@ -32,8 +32,10 @@ class WaypointUpdater(object):
 
         rospy.Subscriber('/current_pose', PoseStamped, self.position_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below -- TBD Make sure the obstable  msgs are PoseStamped type
+        rospy.Subscriber('/traffic_waypoint', PoseStamped, self.traffic_cb)
+        rospy.Subscriber('/obstacle_waypoint', PoseStamped, self.obstacle_cb)
 
-        # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         self.position = [0,0,0]
         self.yaw = 0
         self.speed = 0
@@ -153,6 +155,7 @@ class WaypointUpdater(object):
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
+        
         pass
 
     def obstacle_cb(self, msg):
