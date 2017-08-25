@@ -22,7 +22,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 2  # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -37,6 +37,7 @@ class WaypointUpdater(object):
         self.position = [0,0,0]
         self.yaw = 0
         self.speed = 0
+        self.targetLane = 1
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
         
@@ -48,8 +49,9 @@ class WaypointUpdater(object):
     def convertToLocal(self, wps):
         localWps = []
         for waypoint in wps:
-            shiftedX = waypoint[0] - self.position[0]
-            shiftedY = waypoint[1] - self.position[1]
+            laneShift = (self.targetLane-1)*4
+            shiftedX = waypoint[0] - laneShift*math.sin(waypoint[2]) - self.position[0]
+            shiftedY = waypoint[1] + laneShift*math.cos(waypoint[2]) - self.position[1]
             rotatedX = shiftedX * math.cos(self.yaw) + shiftedY * math.sin(self.yaw)
             rotatedY = -shiftedX * math.sin(self.yaw) + shiftedY * math.cos(self.yaw)
             localWps.append([rotatedX, rotatedY, waypoint[2]-self.yaw])
@@ -73,7 +75,7 @@ class WaypointUpdater(object):
         for waypoint in localUsedWps:
             msgWp = Waypoint()
             msgWp.pose.pose.position.x = waypoint[0]
-            msgWp.pose.pose.position.y = waypoint[1]
+            msgWp.pose.pose.position.y = waypoint[1] 
             q = self.quaternion_from_yaw(waypoint[2])
             msgWp.pose.pose.orientation = Quaternion(*q)
             msgWp.twist.twist.linear.x = 10.
