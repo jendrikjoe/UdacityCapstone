@@ -22,7 +22,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 2  # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 200  # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -138,7 +138,7 @@ class WaypointUpdater(object):
         return dist"""
     
     def loop(self):
-        rate = rospy.Rate(5) # 5Hz
+        rate = rospy.Rate(10) # 5Hz
         while not rospy.is_shutdown():
             if np.any(self.baseWaypoints == None): rate.sleep()
             else:
@@ -152,9 +152,9 @@ class WaypointUpdater(object):
                 lane = Lane()
                 msgWps = []
                 for waypoint in usedWps:
-                    if(len(msgWps) == 0):
-                        rospy.logerr('heading:%.3f \nwpX:%.3f wpY:%.3f' %
-                                 (waypoint[3], waypoint[0], waypoint[1]))
+                    #if(len(msgWps) == 0):
+                    #    rospy.logerr('heading:%.3f \nwpX:%.3f wpY:%.3f' %
+                    #             (waypoint[3], waypoint[0], waypoint[1]))
                     msgWp = Waypoint()
                     msgWp.pose.pose.position.x = waypoint[0]
                     msgWp.pose.pose.position.y = waypoint[1] 

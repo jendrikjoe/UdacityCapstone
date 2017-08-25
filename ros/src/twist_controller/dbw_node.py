@@ -87,7 +87,7 @@ class DBWNode(object):
         self.cmdAngularVelocity = data.twist.angular.z
 
     def loop(self):
-        rate = rospy.Rate(10) # 10Hz
+        rate = rospy.Rate(40) # 20Hz
         while not rospy.is_shutdown():
             throttle, brake, steer = self.controller.control(self.cmdVelocity, 
 					self.cmdAngularVelocity, self.currentAngularVelocity, 
