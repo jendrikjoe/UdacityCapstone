@@ -40,52 +40,20 @@ class WaypointUpdater(object):
         self.targetLane = 1
         self.currentWPIndex = -1
 
-        self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
+        self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
-
-        # TODO: Add other member variables you need below
-
-        rospy.spin()
-
-    def convertToLocal(self, wps):
-        localWps = []
-        for waypoint in wps:
-            laneShift = (self.targetLane-1)*4
-            shiftedX = waypoint[0] - laneShift*math.sin(waypoint[2]) - self.position[0]
-            shiftedY = waypoint[1] + laneShift*math.cos(waypoint[2]) - self.position[1]
-            rotatedX = shiftedX * math.cos(self.yaw) + shiftedY * math.sin(self.yaw)
-            rotatedY = -shiftedX * math.sin(self.yaw) + shiftedY * math.cos(self.yaw)
-            localWps.append([rotatedX, rotatedY, waypoint[2]-self.yaw])
-        return localWps
+        self.loop()
+        
 
     def position_cb(self, msg):
-        if np.any(self.baseWaypoints == None): return
         self.position = [msg.pose.position.x,
 			msg.pose.position.y, msg.pose.position.z]
         orientation=(msg.pose.orientation.x, msg.pose.orientation.y,
                         msg.pose.orientation.z, msg.pose.orientation.w)
         euler = tf.transformations.euler_from_quaternion(orientation)
         self.yaw = euler[2]
-        nextWpIndex = self.getNextWpIndex()
-        self.currentWPIndex = nextWpIndex
-        usedWps = []
-        for i in np.arange(nextWpIndex, nextWpIndex+LOOKAHEAD_WPS):
-            if(i < len(self.baseWaypoints)-1): usedWps.append(self.baseWaypoints[i])
-        localUsedWps = self.convertToLocal(usedWps)
-        lane = Lane()
-        msgWps = []
-        for waypoint in localUsedWps:
-            msgWp = Waypoint()
-            msgWp.pose.pose.position.x = waypoint[0]
-            msgWp.pose.pose.position.y = waypoint[1] 
-            q = self.quaternion_from_yaw(waypoint[2])
-            msgWp.pose.pose.orientation = Quaternion(*q)
-            msgWp.twist.twist.linear.x = 10.
-            msgWps.append(msgWp)
-        lane.header.frame_id = '/local'
-        lane.header.stamp = rospy.Time(0)
-        lane.waypoints = msgWps
-        self.final_waypoints_pub.publish(lane)
+        #rospy.logerr('yaw:%.3f' % self.yaw)
+        self.yaw = self.yaw if self.yaw < np.pi else self.yaw - 2*np.pi
 
     @staticmethod
     def quaternion_from_yaw(yaw):
@@ -103,33 +71,13 @@ class WaypointUpdater(object):
 
 
     def getNextWpIndex(self):
-        ## For the very first waypoint
-        if self.currentWPIndex == -1:
-            return 0
-
-        closestWpIndex= -1
-        ## TO DO: If current wp is within 200 indices away from the end of lap, append the first entries to the closest wp to start the
-        ## next lap
-
-
-        ## Compute current distance & heading from previous wp
-        ## Get the wp that is closest in heading and distance to the current wp
-        dist_prev = WaypointUpdater.distance(self.position[0],self.position[1], self.baseWaypoints[self.currentWPIndex][0], self.baseWaypoints[self.currentWPIndex][1])
-        heading = math.atan2( (self.baseWaypoints[self.currentWPIndex][1]-self.position[1]),(self.baseWaypoints[self.currentWPIndex][0]-self.position[0]))
-        for i in range(self.currentWPIndex+1,len(self.baseWaypoints)):
-            dist2NextWP = WaypointUpdater.distance(self.baseWaypoints[i][0],self.baseWaypoints[i][1], self.baseWaypoints[self.currentWPIndex][0], self.baseWaypoints[self.currentWPIndex][1])
-            heading2NextWP = math.atan2( (self.baseWaypoints[i][1]-self.position[1]),(self.baseWaypoints[i][0]-self.position[0]))
-
-            if abs(heading-heading2NextWP) <= pi/4:
-                ## Next way point is within +/- 45 degree heading from current heading.
-                ## Choose this. Else keep looking
-                closestWpIndex = i
-                break
-
-        if closestWpIndex == -1:
-            ## No waypoint is within the +/- 45 degree heading. Vehicle probably overshot the previous way point by a lot. Attempt to go back to the previous way point
-            closestWpIndex = self.currentWPIndex
-            
+        closestWpIndex = self.closestWaypointIndex()
+ 
+        x = self.baseWaypoints[closestWpIndex][0]
+        y = self.baseWaypoints[closestWpIndex][1]
+        heading = math.atan2( (y-self.position[1]),(x-self.position[0]))
+        angle = abs(self.yaw-heading)
+        if(angle > np.pi/4): closestWpIndex+=1
         return closestWpIndex
 
     def closestWaypointIndex(self):
@@ -165,7 +113,10 @@ class WaypointUpdater(object):
 
     @staticmethod
     def getYaw(waypoint):
-        return waypoint.pose.pose.orientation.z
+        orientation=(waypoint.pose.pose.orientation.x, waypoint.pose.pose.orientation.y,
+                        waypoint.pose.pose.orientation.z, waypoint.pose.pose.orientation.w)
+        euler =  tf.transformations.euler_from_quaternion(orientation)
+        return euler[2]
 
     @staticmethod
     def getY(waypoint):
@@ -185,6 +136,39 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist"""
+    
+    def loop(self):
+        rate = rospy.Rate(5) # 5Hz
+        while not rospy.is_shutdown():
+            if np.any(self.baseWaypoints == None): rate.sleep()
+            else:
+                self.currentWPIndex = self.getNextWpIndex()
+                usedWps = []
+                for i in np.arange(self.currentWPIndex, self.currentWPIndex+LOOKAHEAD_WPS):
+                    if(i < len(self.baseWaypoints)-1): 
+                        usedWps.append(self.baseWaypoints[i])
+                        #rospy.logerr('heading:%.3f \nwpX:%.3f wpY:%.3f' %
+                        #         (self.baseWaypoints[i][3], self.baseWaypoints[i][0], self.baseWaypoints[i][1]))
+                lane = Lane()
+                msgWps = []
+                for waypoint in usedWps:
+                    if(len(msgWps) == 0):
+                        rospy.logerr('heading:%.3f \nwpX:%.3f wpY:%.3f' %
+                                 (waypoint[3], waypoint[0], waypoint[1]))
+                    msgWp = Waypoint()
+                    msgWp.pose.pose.position.x = waypoint[0]
+                    msgWp.pose.pose.position.y = waypoint[1] 
+                    q = self.quaternion_from_yaw(waypoint[3])
+                    msgWp.pose.pose.orientation = Quaternion(*q)
+                    msgWp.twist.twist.linear.x = 10.
+                    msgWps.append(msgWp)
+                    
+                lane.header.frame_id = '/world'
+                lane.header.stamp = rospy.Time(0)
+                lane.waypoints = msgWps
+                self.final_waypoints_pub.publish(lane)
+                rate.sleep()
+            
 
 
 if __name__ == '__main__':
