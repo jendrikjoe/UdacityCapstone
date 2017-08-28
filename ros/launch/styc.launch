@@ -17,4 +17,6 @@
 
     <!--Traffic Light Detector Node -->
     <include file="$(find tl_detector)/launch/tl_detector.launch"/>
+
+    <include file="$(find trajectory_plotter)/launch/trajectory_plotter.launch"/>
 </launch>

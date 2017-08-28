@@ -78,7 +78,7 @@ class DBWNode(object):
     def velCallback(self, data):
         rospy.loginfo('Got velocity data. ' + data.__str__())
         self.currentVelocity = data.twist.linear.x
-        self.currentAngularVelocity = data.twist.angular.z
+        self.currentAngularVelocity = .9*self.currentAngularVelocity + .1*data.twist.angular.z
 
 
     def twistCmdCallback(self, data):
