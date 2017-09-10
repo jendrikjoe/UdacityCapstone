@@ -5,7 +5,6 @@ import csv
 import math
 import numpy as np
 from geometry_msgs.msg import Quaternion
-
 from styx_msgs.msg import Lane, Waypoint
 
 import tf
@@ -64,7 +63,7 @@ class WaypointLoader(object):
         last = waypoints[-1]
         last.twist.twist.linear.x = 0.
         for wp in waypoints[:-1][::-1]:
-            dist = self.distance(wp.pose.pose.position, last.pose.pose.position)
+            dist = self.eucldian_distance(wp.pose.pose.position, last.pose.pose.position)
             vel = math.sqrt(2 * MAX_DECEL * dist) * 3.6
             if vel < 1.:
                 vel = 0.
@@ -72,7 +71,7 @@ class WaypointLoader(object):
         return waypoints
 
     def publish(self, waypoints):
-        rate = rospy.Rate(1)
+        rate = rospy.Rate(40)
         while not rospy.is_shutdown():
             lane = Lane()
             lane.header.frame_id = '/world'

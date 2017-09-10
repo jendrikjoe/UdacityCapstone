@@ -1,8 +1,8 @@
 import rospy
-
 from yaw_controller import YawController
 from pid import PID
 from lowpass import LowPassFilter
+
 
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
@@ -38,6 +38,3 @@ class Controller(object):
 		steering = self.yawController.get_steering(linearVelocityCmd, 
 					angularVelocityCmd, currentVelocity)
 		return throttle, brake, steering
-	
-	
-	
