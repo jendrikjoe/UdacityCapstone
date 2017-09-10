@@ -17,6 +17,7 @@ conf = AttrDict({
         {'topic': '/vehicle/lidar', 'type': 'pcl', 'name': 'lidar'},
         {'topic': '/vehicle/traffic_lights', 'type': 'trafficlights', 'name': 'trafficlights'},
         {'topic': '/vehicle/dbw_enabled', 'type': 'bool', 'name': 'dbw_status'},
+        # TODO: Check if this is the new topic name and delete /camera/image_raw
         {'topic': '/camera/image_raw', 'type': 'image', 'name': 'image'},
         {'topic': '/image_color', 'type': 'image', 'name': 'image'},
     ]
