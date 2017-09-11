@@ -21,12 +21,11 @@ class TrajectoryPlotter(object):
         self.speed = 0
         self.targetLane = 1
         self.currentWPIndex = -1
-        fig = plt.figure(figsize=(16,9))
+        fig = plt.figure()
         self.ax = fig.gca()
-        self.ax.title('Trajectory')
-        self.ax.xlabel('x')
-        self.ax.xlabel('y')
-
+        self.ax.set_title('Trajectory')
+        self.ax.set_xlabel('x')
+        self.ax.set_xlabel('y')
         plt.show(block=True)
         #rospy.spin()
         

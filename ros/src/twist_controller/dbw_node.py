@@ -78,7 +78,7 @@ class DBWNode(object):
     def velCallback(self, data):
         rospy.loginfo('Got velocity data. ' + data.__str__())
         self.currentVelocity = data.twist.linear.x
-        self.currentAngularVelocity = .9*self.currentAngularVelocity + .1*data.twist.angular.z
+        self.currentAngularVelocity = .5*self.currentAngularVelocity + .5*data.twist.angular.z
 
 
     def twistCmdCallback(self, data):
@@ -90,8 +90,7 @@ class DBWNode(object):
         rate = rospy.Rate(40) # 20Hz
         while not rospy.is_shutdown():
             throttle, brake, steer = self.controller.control(self.cmdVelocity, 
-					self.cmdAngularVelocity, self.currentAngularVelocity, 
-					self.currentVelocity)
+					self.cmdAngularVelocity, self.currentVelocity)
             #rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % 
             #              (throttle, brake, steer))
             self.publish(throttle, brake, steer)

@@ -3,6 +3,7 @@ import rospy
 from yaw_controller import YawController
 from pid import PID
 from lowpass import LowPassFilter
+import numpy as np
 
 GAS_DENSITY = 2.858
 ONE_MPH = 0.44704
@@ -31,7 +32,7 @@ class Controller(object):
 		self.lastError = err
 		return self.speed_kp*err + self.accel_kp*der + self.accel_ki*self.intValue
 				
-	def control(self, linearVelocityCmd, angularVelocityCmd, angularVelocity, currentVelocity):
+	def control(self, linearVelocityCmd, angularVelocityCmd, currentVelocity):
 		#accCmd = self.calculateValue(linearVelocityCmd, currentVelocity)
 		throttle = self.calculateValue(linearVelocityCmd,currentVelocity)
 		brake = 0#-1.*accCmd if accCmd < 0 else 0
