@@ -2,10 +2,12 @@
 
 import rospy
 from geometry_msgs.msg import PoseStamped, Quaternion
-from styx_msgs.msg import Lane, Waypoint
 import numpy as np
-import math
 import tf
+from geometry_msgs.msg import PoseStamped
+from styx_msgs.msg import Lane, Waypoint
+
+import math
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -43,17 +45,8 @@ class WaypointUpdater(object):
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
         self.loop()
-        
 
-    def position_cb(self, msg):
-        self.position = [msg.pose.position.x,
-			msg.pose.position.y, msg.pose.position.z]
-        orientation=(msg.pose.orientation.x, msg.pose.orientation.y,
-                        msg.pose.orientation.z, msg.pose.orientation.w)
-        euler = tf.transformations.euler_from_quaternion(orientation)
-        self.yaw = euler[2]
-        #rospy.logerr('yaw:%.3f' % self.yaw)
-        self.yaw = self.yaw if self.yaw < np.pi else self.yaw - 2*np.pi
+
 
     @staticmethod
     def quaternion_from_yaw(yaw):
@@ -72,7 +65,6 @@ class WaypointUpdater(object):
 
     def getNextWpIndex(self):
         closestWpIndex = self.closestWaypointIndex()
- 
         x = self.baseWaypoints[closestWpIndex][0]
         y = self.baseWaypoints[closestWpIndex][1]
         heading = math.atan2( (y-self.position[1]),(x-self.position[0]))
@@ -87,7 +79,7 @@ class WaypointUpdater(object):
         for i in range(self.currentWPIndex,len(self.baseWaypoints)):
             x = self.baseWaypoints[i][0]
             y = self.baseWaypoints[i][1]
-            dist = WaypointUpdater.distance(self.position[0],self.position[1], x, y)
+            dist = WaypointUpdater.eucldian_distance(self.position[0], self.position[1], x, y)
             if(dist < closestLen):
                 closestLen = dist
                 closestWaypoint = i
@@ -95,9 +87,30 @@ class WaypointUpdater(object):
 
 
     @staticmethod
-    def distance(x1, y1, x2, y2):
+    def eucldian_distance(x1, y1, x2, y2):
         return np.sqrt((x1-x2)**2+(y1-y2)**2)
 
+    @staticmethod
+    def distance(self, waypoints, wp1, wp2):
+        dist = 0
+        dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+        for i in range(wp1, wp2+1):
+            dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
+            wp1 = i
+        return dist
+
+    def position_cb(self, msg):
+        self.position = [msg.pose.position.x, msg.pose.position.y, msg.pose.position.z]
+        orientation=(msg.pose.orientation.x, msg.pose.orientation.y,
+                        msg.pose.orientation.z, msg.pose.orientation.w)
+        euler = tf.transformations.euler_from_quaternion(orientation)
+        self.yaw = euler[2]
+        # rospy.logerr('yaw:%.3f' % self.yaw)
+        self.yaw = self.yaw if self.yaw < np.pi else self.yaw - 2*np.pi
+
+    def pose_cb(self, msg):
+        # TODO: Implement
+        pass
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -123,9 +136,10 @@ class WaypointUpdater(object):
         return waypoint.pose.pose.position.y
 
     @staticmethod
-    def getVelocity(waypoint):
+    def get_waypoint_velocity(self, waypoint):
         return waypoint.twist.twist.linear.x
 
+    @staticmethod
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
@@ -168,7 +182,6 @@ class WaypointUpdater(object):
                 lane.waypoints = msgWps
                 self.final_waypoints_pub.publish(lane)
                 rate.sleep()
-            
 
 
 if __name__ == '__main__':
