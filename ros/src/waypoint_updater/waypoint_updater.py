@@ -59,7 +59,7 @@ class WaypointUpdater(object):
                 self.baseWaypoints.append([
                     self.getX(waypoint),
                     self.getY(waypoint),
-                    self.getVelocity(waypoint),
+                    self.get_waypoint_velocity(waypoint),
                     self.getYaw(waypoint)])
 
 
@@ -136,11 +136,11 @@ class WaypointUpdater(object):
         return waypoint.pose.pose.position.y
 
     @staticmethod
-    def get_waypoint_velocity(self, waypoint):
+    def get_waypoint_velocity(waypoint):
         return waypoint.twist.twist.linear.x
 
     @staticmethod
-    def set_waypoint_velocity(self, waypoints, waypoint, velocity):
+    def set_waypoint_velocity(waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
     """def distance(self, waypoints, wp1, wp2):
