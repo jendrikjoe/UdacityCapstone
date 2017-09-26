@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Int32
-from geometry_msgs.msg import PoseStamped, Pose
+from geometry_msgs.msg import PoseStamped, Pose, PointStamped
 from styx_msgs.msg import TrafficLightArray, TrafficLight
 from styx_msgs.msg import Lane
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from light_classification.tl_classifier import TLClassifier
-import tf
 import cv2
+import tf
 import yaml
+import numpy as np
+import math
 
 STATE_COUNT_THRESHOLD = 3
 
@@ -39,6 +41,7 @@ class TLDetector(object):
         self.config = yaml.load(config_string)
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
+        self.annImagePub = rospy.Publisher('/annotated_image', Image, queue_size=1)
 
         self.bridge = CvBridge()
         self.light_classifier = TLClassifier()
@@ -100,8 +103,20 @@ class TLDetector(object):
             int: index of the closest waypoint in self.waypoints
 
         """
-        #TODO implement
-        return 0
+        closestLen = 100000. #large number
+        closestWaypoint = 0
+        for i in range(0,len(self.waypoints)):
+            x = self.waypoints[i][0]
+            y = self.waypoints[i][1]
+            dist = self.eucldian_distance(x, y, self.pose.position.x, self.pose.position.y)
+            if(dist < closestLen):
+                closestLen = dist
+                closestWaypoint = i
+        return closestWaypoint
+    
+    @staticmethod
+    def eucldian_distance(x1, y1, x2, y2):
+        return np.sqrt((x1-x2)**2+(y1-y2)**2)
 
 
     def project_to_image_plane(self, point_in_world):
@@ -115,30 +130,55 @@ class TLDetector(object):
             y (int): y coordinate of target point in image
 
         """
-
         fx = self.config['camera_info']['focal_length_x']
         fy = self.config['camera_info']['focal_length_y']
         image_width = self.config['camera_info']['image_width']
         image_height = self.config['camera_info']['image_height']
 
-        # get transform between pose of camera and world frame
-        trans = None
         try:
             now = rospy.Time.now()
             self.listener.waitForTransform("/base_link",
                   "/world", now, rospy.Duration(1.0))
-            (trans, rot) = self.listener.lookupTransform("/base_link",
+            (transT, rotT) = self.listener.lookupTransform("/base_link",
                   "/world", now)
 
         except (tf.Exception, tf.LookupException, tf.ConnectivityException):
             rospy.logerr("Failed to find camera to map transform")
+            return None, None
+        pt = PointStamped()
+        pt.header.stamp = point_in_world.header.stamp
+        pt.header.frame_id = "world"
+        pt.point.x = point_in_world.pose.pose.position.x
+        pt.point.y = point_in_world.pose.pose.position.y
+        pt.point.z = point_in_world.pose.pose.position.z
+        rospy.loginfo("Point: " + str(pt))
+        target_pt = self.listener.transformPoint("base_link", pt)
+        cx = image_width/2
+        cy = image_height/2
+        
+        ##########################################################################################
+        # DELETE THIS MAYBE - MANUAL TWEAKS TO GET THE PROJECTION TO COME OUT CORRECTLY IN SIMULATOR
+        # just override the simulator parameters. probably need a more reliable way to determine if 
+        # using simulator and not real car
+        # See discussion in forum
+        if fx < 10:
+            fx = 2344
+            fy = 2552 #303.8
+            target_pt.point.y += 0.5
+            target_pt.point.z -= 1.2
+            cy = cy * 2 
+        ##########################################################################################
 
-        #TODO Use tranform and rotation to calculate 2D position of light in image
-
-        x = 0
-        y = 0
+        
+        rospy.loginfo("Target Point: " + str(target_pt))
+        x = -target_pt.point.y * fx / target_pt.point.x; 
+        y = -target_pt.point.z * fy / target_pt.point.x; 
+        rospy.loginfo("x: %.3f, y:%.3f"%(x,y))
+        x = int(x + cx)
+        y = int(y + cy) 
 
         return (x, y)
+    
 
     def get_light_state(self, light):
         """Determines the current color of the traffic light
@@ -156,7 +196,19 @@ class TLDetector(object):
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
-        x, y = self.project_to_image_plane(light.pose.pose.position)
+        x, y = self.project_to_image_plane(light)
+        
+        
+        image = cv_image[:]
+        rospy.loginfo("Position in image: %d, %d"%(x,y))
+        cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
+        try:
+            image = self.bridge.cv2_to_imgmsg(image, "bgr8")
+            self.annImagePub.publish(image)
+        except CvBridgeError, e:
+            print e
+   
+        
 
         #TODO use light location to zoom in on traffic light in image
 
@@ -173,15 +225,36 @@ class TLDetector(object):
 
         """
         light = None
-
+        
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
-            car_position = self.get_closest_waypoint(self.pose.pose)
-
-        #TODO find the closest visible traffic light (if one exists)
-
+            #car_position = self.get_closest_waypoint(self.pose.pose)
+            orientation=(self.pose.pose.orientation.x, self.pose.pose.orientation.y,
+                        self.pose.pose.orientation.z, self.pose.pose.orientation.w)
+            euler = tf.transformations.euler_from_quaternion(orientation)
+            yaw = euler[2]
+            light_wp = -1
+            smallestDist = 10000.
+            for i, stopLine in zip(xrange(len(stop_line_positions)), stop_line_positions):
+                shiftStopX = stopLine[0] - self.pose.pose.position.x
+                shiftStopY = stopLine[1] - self.pose.pose.position.y
+                relStopX = math.cos(yaw)*shiftStopX + math.sin(yaw)*shiftStopY
+                relStopY = -math.sin(yaw)*shiftStopX + math.cos(yaw)*shiftStopY
+                rospy.loginfo("RelX: %.3f, relY: %.3f, dist:%.1f"%(relStopX, relStopY, np.sqrt(relStopX**2+relStopY**2)))
+                if(relStopX > 0 and relStopX < 100 and smallestDist > np.sqrt(relStopX**2+relStopY**2)):
+                    light_wp = i
+                    smallestDist = np.sqrt(relStopX**2+relStopY**2)
+            
+            rospy.loginfo("Selected light: %i"%light_wp)
+            if light_wp != -1:
+                x, y = self.project_to_image_plane(self.lights[light_wp])
+                if(x > 0 and x < self.config['camera_info']['image_width'] and
+                   y > 0 and y < self.config['camera_info']['image_height']) :
+                    light = self.lights[light_wp]
+                    
         if light:
+            
             state = self.get_light_state(light)
             return light_wp, state
         self.waypoints = None

@@ -17,25 +17,22 @@ class Controller(object):
 		
 		self.yawController = YawController(wheel_base, steer_ratio,
  								1., max_lat_accel, max_steer_angle)
+		self.pid = PID(accel_kp, accel_ki, speed_kp,-1,1)
 		self.intValue = 0
 		self.lastError = 0
 		self.lastErr = 0
-		self.speed_kp = speed_kp
-		self.accel_kp = accel_kp
-		self.accel_ki = accel_ki
-	
-
-	def calculateValue(self, cmd, value):
-		err = cmd-value
-		self.intValue += err
-		der = err - self.lastErr
-		self.lastError = err
-		return self.speed_kp*err + self.accel_kp*der + self.accel_ki*self.intValue
+		self.lastTime = 0
 				
 	def control(self, linearVelocityCmd, angularVelocityCmd, currentVelocity):
-		#accCmd = self.calculateValue(linearVelocityCmd, currentVelocity)
-		throttle = self.calculateValue(linearVelocityCmd,currentVelocity)
-		brake = 0#-1.*accCmd if accCmd < 0 else 0
-		steering = self.yawController.get_steering(linearVelocityCmd, 
-					angularVelocityCmd, currentVelocity)
-		return throttle, brake, steering
+		if(self.lastTime == 0):
+			self.lastTime = rospy.Time.now()
+			return 0,0,0
+		else:
+			#accCmd = self.calculateValue(linearVelocityCmd, currentVelocity)
+			step = (rospy.Time.now() - self.lastTime).to_sec()
+			self.lastTime = rospy.Time.now()
+			throttle = self.pid.step(linearVelocityCmd-currentVelocity, step)
+			brake = -throttle if throttle < 0 else 0
+			steering = self.yawController.get_steering(linearVelocityCmd, 
+						angularVelocityCmd, currentVelocity)
+			return throttle, brake, steering
