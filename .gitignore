@@ -4,3 +4,9 @@ build
 devel
 
 profile.tmp
+
+Yolov2TL/data
+Yoloc2TL/darknet19_448.weights
+Yoloc2TL/src/ckpt
+Yoloc2TL/src/log
+
