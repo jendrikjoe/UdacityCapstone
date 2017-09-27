@@ -18,6 +18,7 @@ class Controller(object):
 		self.yawController = YawController(wheel_base, steer_ratio,
  								1., max_lat_accel, max_steer_angle)
 		self.pid = PID(accel_kp, accel_ki, speed_kp,-1,1)
+		self.lowPass = LowPassFilter(self.yawController)
 		self.intValue = 0
 		self.lastError = 0
 		self.lastErr = 0
@@ -29,6 +30,7 @@ class Controller(object):
 			return 0,0,0
 		else:
 			#accCmd = self.calculateValue(linearVelocityCmd, currentVelocity)
+			accFilter = self.lowPass.filt(linearVelocityCmd)
 			step = (rospy.Time.now() - self.lastTime).to_sec()
 			self.lastTime = rospy.Time.now()
 			throttle = self.pid.step(linearVelocityCmd-currentVelocity, step)
