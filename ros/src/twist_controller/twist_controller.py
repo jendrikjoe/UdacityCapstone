@@ -18,7 +18,7 @@ class Controller(object):
 		self.yawController = YawController(wheel_base, steer_ratio,
  								1., max_lat_accel, max_steer_angle)
 		self.pid = PID(accel_kp, accel_ki, speed_kp,-1,1)
-		self.lowPass = LowPassFilter(self.yawController)
+		self.lowPass = LowPassFilter(.1,.1)#Doesn't work anymore....(self.yawController)
 		self.intValue = 0
 		self.lastError = 0
 		self.lastErr = 0

@@ -56,7 +56,7 @@ class DBWNode(object):
         self.currentAngularVelocity = 0
         self.cmdVelocity = 0
         self.cmdAngularVelocity = 0
-		self.isDBMEnabled = True
+        self.isDBMEnabled = True
 
 		# TODO: Create `TwistController` object
         self.controller = Controller(vehicle_mass=vehicle_mass, 
@@ -72,6 +72,9 @@ class DBWNode(object):
         rospy.Subscriber('/vehicle/dbw_enabled', TwistStamped, self.dbwEnabledCallback)
 
         self.loop()
+    
+    def dbwEnabledCallback(self, data):
+        self.isDBMEnabled = data.dbw_status
 
     def velCallback(self, data):
         rospy.loginfo('Got velocity data. ' + data.__str__())
@@ -84,11 +87,6 @@ class DBWNode(object):
         self.cmdVelocity = data.twist.linear.x
         self.cmdAngularVelocity = data.twist.angular.z
 
-	def dbwEnabledCallback(self, data):
-		self.isDBMEnabled = data.dbw_status;
-
-
-
     def loop(self):
         rate = rospy.Rate(50) # 20Hz
         while not rospy.is_shutdown():
@@ -97,12 +95,12 @@ class DBWNode(object):
 				self.cmdAngularVelocity, 
 				self.currentVelocity
 			)
-            rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % (throttle, brake, steer))
-			if self.isDBMEnabled:
-				self.publish(throttle, brake, steer)
-			else:
-				# TODO: Come up with a better strategy. For now come to a complete hauld
-				self.publish(0.0, 0.0, 0.0)
+            #rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % (throttle, brake, steer))
+            if self.isDBMEnabled:
+                self.publish(throttle, brake, steer)
+            else:
+                # TODO: Come up with a better strategy. For now come to a complete hauld
+                self.publish(0.0, 0.0, 0.0)
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
             # throttle, brake, steering = self.controller.control(<proposed linear velocity>,

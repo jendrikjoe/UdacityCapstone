@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     break
                 else:
                     time.sleep(.05)
-            tmpLoss, tmpAcc, tmpCE, tmpImu= segNet.train(np.array(data[0]['inputImg']), np.array(data[1]['outputImg']), data[2], sess)
+            tmpLoss, tmpAcc, tmpCE, tmpImu = yolo.train(np.array(data[0]['inputImg']), np.array(data[1]['outputImg']), data[2], sess)
             print("Step: %d of %d, Train Loss: %g" % (j, batchPerEpoch, tmpLoss))
             batchLoss += tmpLoss
             batchAcc += tmpAcc
@@ -124,7 +124,7 @@ if __name__ == '__main__':
                     break
                 else:
                     time.sleep(.01)
-            tmpLoss, tmpAcc, tmpCE, tmpImu = segNet.val(np.array(data[0]['inputImg']), np.array(data[1]['outputImg']), data[2], sess)
+            tmpLoss, tmpAcc, tmpCE, tmpImu = yolo.val(np.array(data[0]['inputImg']), np.array(data[1]['outputImg']), data[2], sess)
             testLoss += tmpLoss
             testAcc += tmpAcc
             testCE += tmpCE
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         # Add it to the Tensorboard summary writer
         # Make sure to specify a step parameter to get nice graphs over time
         summaryWriter.add_summary(summary, i)
-        res = dataset.convertTargetToImage(np.reshape(segNet.eval(image,sess),
+        res = dataset.convertTargetToImage(np.reshape(yolo.eval(image,sess),
                     (inputShape[1], inputShape[2])))
         imageTemp = (255.*image[0]).astype('uint8')
         mpimg.imsave('../images/Epoch%04d.png'%i, cv2.addWeighted(res, 0.5, imageTemp, 0.5, 0))
