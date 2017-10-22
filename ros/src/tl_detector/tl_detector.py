@@ -197,6 +197,8 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
 
         x, y = self.project_to_image_plane(light)
+        
+        
         image = cv_image[:]
         rospy.loginfo("Position in image: %d, %d"%(x,y))
         cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
