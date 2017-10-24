@@ -69,7 +69,7 @@ class DBWNode(object):
 
         rospy.Subscriber('/current_velocity', TwistStamped, self.velCallback)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twistCmdCallback)
-        rospy.Subscriber('/vehicle/dbw_enabled', TwistStamped, self.dbwEnabledCallback)
+        rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbwEnabledCallback)
 
         self.loop()
     
