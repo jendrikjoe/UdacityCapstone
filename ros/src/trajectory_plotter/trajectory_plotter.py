@@ -21,14 +21,19 @@ class TrajectoryPlotter(object):
         self.speed = 0
         self.targetLane = 1
         self.currentWPIndex = -1
-        fig = plt.figure()
+	self.show_plot = False
+	
+	if self.show_plot:
+	  self.plot_trajectory()        
+	
+
+    def plot_trajectory(self):
+	fig = plt.figure()
         self.ax = fig.gca()
         self.ax.set_title('Trajectory')
         self.ax.set_xlabel('x')
         self.ax.set_xlabel('y')
         plt.show(block=True)
-        #rospy.spin()
-        
 
     def position_cb(self, msg):
         self.position = [msg.pose.position.x,
