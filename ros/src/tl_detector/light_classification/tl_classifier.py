@@ -1,16 +1,14 @@
-import numpy
-import sys
 import rospy
 from styx_msgs.msg import TrafficLight
 from PIL import Image
 from cv_bridge import CvBridge
-from keras.models import load_model
-from keras.preprocessing.image import img_to_array
+#from keras.models import load_model
+#from keras.preprocessing.image import img_to_array
 
 class TLClassifier(object):
 	def __init__(self):
         #TODO load classifier
-		self.loaded_model = self.get_model()
+		self.loaded_model = {} #self.get_model()
         
 	def get_model(self):
 		global model
@@ -20,7 +18,7 @@ class TLClassifier(object):
 		
 	def predict_light(self, image_array):
 		# Load CNN Model
-		prediction = self.loaded_model.predict(image_array[None, :])
+		prediction = {}  #self.loaded_model.predict(image_array[None, :])
 		if prediction[0][0] == 1:
 			return TrafficLight.GREEN
 		elif prediction[0][1] == 1:
