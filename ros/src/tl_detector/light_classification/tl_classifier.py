@@ -1,17 +1,11 @@
-from styx_msgs.msg import TrafficLight
 import numpy
 import sys
-import PIL
-import message_filters
 import rospy
-
+from styx_msgs.msg import TrafficLight
 from PIL import Image
 from cv_bridge import CvBridge
 from keras.models import load_model
 from keras.preprocessing.image import img_to_array
-from road_wizard.msg import Signals
-from runtime_manager.msg import traffic_light
-from sensor_msgs.msg import Image
 
 class TLClassifier(object):
 	def __init__(self):
