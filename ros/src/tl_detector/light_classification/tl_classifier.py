@@ -11,34 +11,36 @@ class TLClassifier(object):
 		self.loaded_model = {} #self.get_model()
         
 	def get_model(self):
+		"""
 		global model
 		if not model:
 			model = load_model('light_classifier_model.h5')
 		return model
+		"""
 		
 	def predict_light(self, image_array):
 		# Load CNN Model
+		"""
 		prediction = {}  #self.loaded_model.predict(image_array[None, :])
 		if prediction[0][0] == 1:
 			return TrafficLight.GREEN
 		elif prediction[0][1] == 1:
 			return TrafficLight.RED
 		else:
-			return TrafficLight.UNKNOWN
+		"""
+		return TrafficLight.UNKNOWN
 
 	def get_classification(self, image):
 		"""Determines the color of the traffic light in the image
-
 		Args:
 			image (cv::Mat): image containing the traffic light
-
 		Returns:
 			int: ID of traffic light color (specified in styx_msgs/TrafficLight)
-
 		"""
+
 		#TODO implement light color prediction
 		# UGH checkout https://github.com/lexfridman/deepcars/blob/master/5_tensorflow_traffic_light_classification.ipynb 
 		# dewwww ittttt
-
-		image_array = img_to_array(image.resize((64, 64), PIL.Image.ANTIALIAS))
-		return self.predict_light(image_array)
+		
+		image_array = [] # img_to_array(image.resize((64, 64), PIL.Image.ANTIALIAS))
+		return -1 #self.predict_light(image_array)
