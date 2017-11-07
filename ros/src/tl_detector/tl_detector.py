@@ -151,7 +151,7 @@ class TLDetector(object):
         pt.point.x = point_in_world.pose.pose.position.x
         pt.point.y = point_in_world.pose.pose.position.y
         pt.point.z = point_in_world.pose.pose.position.z
-        rospy.loginfo("Point: " + str(pt))
+        #rospy.loginfo("Point: " + str(pt))
         target_pt = self.listener.transformPoint("base_link", pt)
         cx = image_width/2
         cy = image_height/2
@@ -170,10 +170,10 @@ class TLDetector(object):
         ##########################################################################################
 
         
-        rospy.loginfo("Target Point: " + str(target_pt))
+        #rospy.loginfo("Target Point: " + str(target_pt))
         x = -target_pt.point.y * fx / target_pt.point.x; 
         y = -target_pt.point.z * fy / target_pt.point.x; 
-        rospy.loginfo("x: %.3f, y:%.3f"%(x,y))
+        #rospy.loginfo("x: %.3f, y:%.3f"%(x,y))
         x = int(x + cx)
         y = int(y + cy) 
 
@@ -200,7 +200,7 @@ class TLDetector(object):
         
         
         image = cv_image[:]
-        rospy.loginfo("Position in image: %d, %d"%(x,y))
+        #rospy.loginfo("Position in image: %d, %d"%(x,y))
         cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
         try:
             image = self.bridge.cv2_to_imgmsg(image, "bgr8")
@@ -241,12 +241,12 @@ class TLDetector(object):
                 shiftStopY = stopLine[1] - self.pose.pose.position.y
                 relStopX = math.cos(yaw)*shiftStopX + math.sin(yaw)*shiftStopY
                 relStopY = -math.sin(yaw)*shiftStopX + math.cos(yaw)*shiftStopY
-                rospy.loginfo("RelX: %.3f, relY: %.3f, dist:%.1f"%(relStopX, relStopY, np.sqrt(relStopX**2+relStopY**2)))
+                #rospy.loginfo("RelX: %.3f, relY: %.3f, dist:%.1f"%(relStopX, relStopY, np.sqrt(relStopX**2+relStopY**2)))
                 if(relStopX > 0 and relStopX < 100 and smallestDist > np.sqrt(relStopX**2+relStopY**2)):
                     light_wp = i
                     smallestDist = np.sqrt(relStopX**2+relStopY**2)
             
-            rospy.loginfo("Selected light: %i"%light_wp)
+            #rospy.loginfo("Selected light: %i"%light_wp)
             if light_wp != -1:
                 x, y = self.project_to_image_plane(self.lights[light_wp])
                 if(x > 0 and x < self.config['camera_info']['image_width'] and

@@ -35,6 +35,7 @@ class DBWNode(object):
     def __init__(self):
         rospy.init_node('dbw_node')
 
+        self.twiddleController = rospy.get_param('~twiddle', False)
         vehicle_mass = rospy.get_param('~vehicle_mass', 1736.35)
         fuel_capacity = rospy.get_param('~fuel_capacity', 13.5)
         brake_deadband = rospy.get_param('~brake_deadband', .1)
@@ -57,33 +58,104 @@ class DBWNode(object):
         self.cmdVelocity = 0
         self.cmdAngularVelocity = 0
         self.isDBMEnabled = True
+        self.controller = None
+        self.twiddleScale = .5
 
-		# TODO: Create `TwistController` object
-        self.controller = Controller(vehicle_mass=vehicle_mass, 
-                fuel_capacity=fuel_capacity, brake_deadband=brake_deadband,
-                 decel_limit=decel_limit, accel_limit=accel_limit, 
-                 wheel_radius=wheel_radius, wheel_base=wheel_base, 
-                 steer_ratio=steer_ratio,
-                 speed_kp=.35, accel_kp=.48, accel_ki=.001, max_lat_accel=max_lat_accel, 
-                 max_steer_angle=max_steer_angle)
+        self.vehicle_mass = vehicle_mass
+        self.fuel_capacity = fuel_capacity
+        self.brake_deadband = brake_deadband
+        self.decel_limit = decel_limit
+        self.accel_limit = accel_limit
+        self.wheel_radius = wheel_radius
+        self.wheel_base = wheel_base
+        self.steer_ratio = steer_ratio
+        self.max_lat_accel = max_lat_accel
+        self.max_steer_angle = max_steer_angle
+
+        
+        if self.twiddleController:
+            self.error = 1e9
+            self.meanThrottle = .8
+            self.twiddleStorage = [.5, .36, .02]
+            self.twiddleParams = [.5, .36, .02]
+            self.twiddle(0, 0)
+        else:
+            self.controller = Controller(vehicle_mass=self.vehicle_mass, 
+                fuel_capacity=self.fuel_capacity, brake_deadband=self.brake_deadband,
+                 decel_limit=self.decel_limit, accel_limit=self.accel_limit, 
+                 wheel_radius=self.wheel_radius, wheel_base=self.wheel_base, 
+                 steer_ratio=self.steer_ratio,
+                 speed_kp=self.twiddleParams[0], accel_kp=self.twiddleParams[1], 
+                 accel_ki=self.twiddleParams[2], max_lat_accel=self.max_lat_accel, 
+                 max_steer_angle=self.max_steer_angle)
 
         rospy.Subscriber('/current_velocity', TwistStamped, self.velCallback)
         rospy.Subscriber('/twist_cmd', TwistStamped, self.twistCmdCallback)
         rospy.Subscriber('/vehicle/dbw_enabled', Bool, self.dbwEnabledCallback)
 
         self.loop()
+
+    def twiddle(self, vel, cmdVel):
+        if self.controller != None:
+            if rospy.get_time() - self.startTime < 30:
+                self.currentErr += pow(vel - cmdVel, 2)
+                return
+            else:
+                if self.error > self.currentErr:
+                    self.error = self.currentErr
+                    self.twiddleStorage[:] = self.twiddleParams[:]
+                    self.twiddleState = -1
+                    rospy.logerr("New params: %.3f, %.3f, %.3f. With error: %.3f",
+                          self.twiddleParams[0], self.twiddleParams[1], 
+                          self.twiddleParams[2], self.currentErr )
+                    self.twiddleScale *= 1.1
+                else:
+                    rospy.logerr("No new params: %.3f, %.3f, %.3f. With error: %.3f",
+                          self.twiddleParams[0], self.twiddleParams[1], 
+                          self.twiddleParams[2], self.currentErr)
+                self.twiddleParams[:] = self.twiddleStorage[:]
+                self.twiddleState += 1
+                if self.twiddleState > 5:
+                    self.twiddleState = 0
+                    self.twiddleScale *= .9
+                if self.twiddleState == 0: 
+                    self.twiddleParams[1] = (1+self.twiddleScale)*self.twiddleParams[1]
+                elif self.twiddleState == 1: 
+                    self.twiddleParams[1] = (1-self.twiddleScale)*self.twiddleParams[1]
+                elif self.twiddleState == 2: 
+                    self.twiddleParams[2] = (1+self.twiddleScale)*self.twiddleParams[2]
+                elif self.twiddleState == 3: 
+                    self.twiddleParams[2] = (1-self.twiddleScale)*self.twiddleParams[2]
+                elif self.twiddleState == 4: 
+                    self.twiddleParams[0] = (1+self.twiddleScale)*self.twiddleParams[0]
+                elif self.twiddleState == 5: 
+                    self.twiddleParams[0] = (1-self.twiddleScale)*self.twiddleParams[0]
+        self.controller = Controller(vehicle_mass=self.vehicle_mass, 
+                fuel_capacity=self.fuel_capacity, brake_deadband=self.brake_deadband,
+                 decel_limit=self.decel_limit, accel_limit=self.accel_limit, 
+                 wheel_radius=self.wheel_radius, wheel_base=self.wheel_base, 
+                 steer_ratio=self.steer_ratio,
+                 speed_kp=self.twiddleParams[0], accel_kp=self.twiddleParams[1], 
+                 accel_ki=self.twiddleParams[2], max_lat_accel=self.max_lat_accel, 
+                 max_steer_angle=self.max_steer_angle)
+        self.startTime = rospy.get_time()
+        self.currentErr = 0
     
     def dbwEnabledCallback(self, data):
-        self.isDBMEnabled = data.dbw_status
+        try:
+            self.isDBMEnabled = data.dbw_status
+        except: pass
 
     def velCallback(self, data):
-        rospy.loginfo('Got velocity data. ' + data.__str__())
+        #rospy.loginfo('Got velocity data. ' + data.__str__())
         self.currentVelocity = data.twist.linear.x
         self.currentAngularVelocity = .5*self.currentAngularVelocity + .5*data.twist.angular.z
+        if self.twiddleController:
+            self.twiddle(self.currentVelocity, self.cmdVelocity)
 
 
     def twistCmdCallback(self, data):
-        rospy.loginfo('Got a twist Cmd. ' + data.__str__())
+        #rospy.loginfo('Got a twist Cmd. ' + data.__str__())
         self.cmdVelocity = data.twist.linear.x
         self.cmdAngularVelocity = data.twist.angular.z
 
@@ -95,6 +167,9 @@ class DBWNode(object):
 				self.cmdAngularVelocity, 
 				self.currentVelocity
 			)
+            if self.twiddleController:
+                self.currentErr += np.abs(self.meanThrottle-throttle)
+                self.meanThrottle = 0.999*self.meanThrottle + 0.001*throttle
             #rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % (throttle, brake, steer))
             if self.isDBMEnabled:
                 self.publish(throttle, brake, steer)
