@@ -195,13 +195,15 @@ class TLDetector(object):
             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-
+        # Are these on the center of the traffic light?
+        # Use RQT image
         x, y = self.project_to_image_plane(light)
         
-        
         image = cv_image[:]
-        #rospy.loginfo("Position in image: %d, %d"%(x,y))
+        rospy.loginfo("Position in image: %d, %d"%(x,y))
+        # instead of box we should do the rectangle
         cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
+
         try:
             image = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.annImagePub.publish(image)
