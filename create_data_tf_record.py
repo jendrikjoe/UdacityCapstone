@@ -89,17 +89,18 @@ def main(_):
     dictionary = dataset_labels_dict("bosch_label_map.pbtxt")
 
     BASE_PATH = '/mnt/f/capstone data/dataset_train_rgb/'
-    #TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
+    TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
 
-    TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
-    data = yaml.load(open(TRAIN_YAML, 'rb').read())
+    #TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
+    #data = yaml.load(open(TRAIN_YAML, 'rb').read())
+    data = yaml.load(open(TEST_YAML, 'rb').read())
 
-    print("Currently converting training data : ", len(data))
+    print("Currently converting test data : ", len(data))
 
     # print("Test Data before fucking loops : ", data[0])
 
     for i in range(len(data)):
-        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TRAIN_YAML), data[i]['path']))
+        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TEST_YAML), data[i]['path']))
         #print(data[i]['path'])
 
 
