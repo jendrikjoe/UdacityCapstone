@@ -59,7 +59,8 @@ class DBWNode(object):
         self.cmdAngularVelocity = 0
         self.isDBMEnabled = True
         self.controller = None
-        self.twiddleScale = .5
+        self.twiddleScale = .3
+        self.meanThrottle = .5
 
         self.vehicle_mass = vehicle_mass
         self.fuel_capacity = fuel_capacity
@@ -75,9 +76,8 @@ class DBWNode(object):
         
         if self.twiddleController:
             self.error = 1e9
-            self.meanThrottle = .8
-            self.twiddleStorage = [.5, .36, .02]
-            self.twiddleParams = [.5, .36, .02]
+            self.twiddleStorage = [.04, .1, .4]
+            self.twiddleParams = [.04, .1, .4]
             self.twiddle(0, 0)
         else:
             self.controller = Controller(vehicle_mass=self.vehicle_mass, 
@@ -97,8 +97,8 @@ class DBWNode(object):
 
     def twiddle(self, vel, cmdVel):
         if self.controller != None:
-            if rospy.get_time() - self.startTime < 30:
-                self.currentErr += pow(vel - cmdVel, 2)
+            if rospy.get_time() - self.startTime <600:
+                self.currentErr += abs(vel - cmdVel)
                 return
             else:
                 if self.error > self.currentErr:
@@ -162,14 +162,18 @@ class DBWNode(object):
     def loop(self):
         rate = rospy.Rate(50) # 20Hz
         while not rospy.is_shutdown():
+            
             throttle, brake, steer = self.controller.control(
 				self.cmdVelocity, 
 				self.cmdAngularVelocity, 
 				self.currentVelocity
 			)
+            #rospy.logerr('Control: %.3f is %.3f throttle %.3f brake %.3f', 
+            #             self.cmdVelocity, self.currentVelocity, throttle, brake)
             if self.twiddleController:
-                self.currentErr += np.abs(self.meanThrottle-throttle)
+                self.currentErr += 2*np.abs(self.meanThrottle-throttle)
                 self.meanThrottle = 0.999*self.meanThrottle + 0.001*throttle
+                self.currentErr += brake
             #rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % (throttle, brake, steer))
             if self.isDBMEnabled:
                 self.publish(throttle, brake, steer)
@@ -202,7 +206,7 @@ class DBWNode(object):
         bcmd = BrakeCmd()
         bcmd.enable = True
         bcmd.pedal_cmd_type = BrakeCmd.CMD_TORQUE
-        bcmd.pedal_cmd = brake
+        bcmd.pedal_cmd = brake*1000
         self.brake_pub.publish(bcmd)
 
 

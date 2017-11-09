@@ -20,9 +20,10 @@ class TLDetector(object):
         rospy.init_node('tl_detector')
 
         self.pose = None
-        self.waypoints = None
+        self.baseWaypoints = None
         self.camera_image = None
         self.lights = []
+        self.lightWPs = []
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -39,6 +40,9 @@ class TLDetector(object):
 
         config_string = rospy.get_param("/traffic_light_config")
         self.config = yaml.load(config_string)
+        
+        
+        
 
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
         self.annImagePub = rospy.Publisher('/annotated_image', Image, queue_size=1)
@@ -57,11 +61,55 @@ class TLDetector(object):
     def pose_cb(self, msg):
         self.pose = msg
 
-    def waypoints_cb(self, waypoints):
-        self.waypoints = waypoints
+
+
+    def waypoints_cb(self, lane):
+        if np.any(self.baseWaypoints == None):
+            self.baseWaypoints = []
+            for waypoint in lane.waypoints:
+                self.baseWaypoints.append([
+                    self.getX(waypoint),
+                    self.getY(waypoint),
+                    self.get_waypoint_velocity(waypoint),
+                    self.getYaw(waypoint)])
+        if len(self.lightWPs) == 0:
+            stopLines = self.config['stop_line_positions']
+            for line in stopLines:
+                stopWp = -1
+                smallestDist = 1000 
+                for i, wp in zip(xrange(len(self.baseWaypoints)), self.baseWaypoints):
+                    stopX = line[0] - wp[0]
+                    stopY = line[1] - wp[1]
+                    if(smallestDist > np.sqrt(stopX**2+stopY**2)):
+                        stopWp = i
+                        smallestDist = np.sqrt(stopX**2+stopY**2)
+                self.lightWPs.append(stopWp)
+                rospy.loginfo("Waypoint: %d", stopWp)
+            rospy.loginfo("Len light waypoints: %d", len(self.lightWPs))
+                
+    @staticmethod
+    def getX(waypoint):
+        return waypoint.pose.pose.position.x
+
+    @staticmethod
+    def getYaw(waypoint):
+        orientation=(waypoint.pose.pose.orientation.x, waypoint.pose.pose.orientation.y,
+                        waypoint.pose.pose.orientation.z, waypoint.pose.pose.orientation.w)
+        euler =  tf.transformations.euler_from_quaternion(orientation)
+        return euler[2]
+
+    @staticmethod
+    def getY(waypoint):
+        return waypoint.pose.pose.position.y
+
+    @staticmethod
+    def get_waypoint_velocity(waypoint):
+        return waypoint.twist.twist.linear.x
 
     def traffic_cb(self, msg):
         self.lights = msg.lights
+                
+            
 
     def image_cb(self, msg):
         """Identifies red lights in the incoming camera image and publishes the index
@@ -86,7 +134,7 @@ class TLDetector(object):
             self.state = state
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             self.last_state = self.state
-            light_wp = light_wp if state == TrafficLight.RED else -1
+            light_wp = light_wp if state != TrafficLight.GREEN else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
         else:
@@ -201,7 +249,10 @@ class TLDetector(object):
         
         image = cv_image[:]
         #rospy.loginfo("Position in image: %d, %d"%(x,y))
-        cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
+        try:
+            cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
+        except:
+            pass
         try:
             image = self.bridge.cv2_to_imgmsg(image, "bgr8")
             self.annImagePub.publish(image)
@@ -225,7 +276,8 @@ class TLDetector(object):
 
         """
         light = None
-        
+        if(len(self.lights) == 0): return -1, 4
+        if(len(self.lightWPs) == 0): return -1, 4
         # List of positions that correspond to the line to stop in front of for a given intersection
         stop_line_positions = self.config['stop_line_positions']
         if(self.pose):
@@ -254,9 +306,8 @@ class TLDetector(object):
                     light = self.lights[light_wp]
                     
         if light:
-            
-            state = self.get_light_state(light)
-            return light_wp, state
+            state = light.state#self.get_light_state(light)
+            return self.lightWPs[light_wp], state
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN
 

@@ -34,7 +34,9 @@ class Controller(object):
 			step = (rospy.Time.now() - self.lastTime).to_sec()
 			self.lastTime = rospy.Time.now()
 			throttle = self.pid.step(linearVelocityCmd-currentVelocity, step)
+			#if(linearVelocityCmd == 0 and currentVelocity < 0.9): throttle = -.2
 			brake = -throttle if throttle < 0 else 0
+			throttle = 0 if throttle < 0 else throttle
 			steering = self.yawController.get_steering(linearVelocityCmd, 
 						angularVelocityCmd, currentVelocity)
 			return throttle, brake, steering

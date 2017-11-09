@@ -6,6 +6,8 @@ import numpy as np
 import tf
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
+from geometry_msgs.msg import TwistStamped
 
 import math
 
@@ -34,6 +36,9 @@ class WaypointUpdater(object):
 
         rospy.Subscriber('/current_pose', PoseStamped, self.position_cb)
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
+        rospy.Subscriber('/current_velocity', TwistStamped, self.velCallback)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
         self.position = [0,0,0]
@@ -44,9 +49,12 @@ class WaypointUpdater(object):
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
+        self.redTlWP = -1
+        self.carVel = 0
         self.loop()
 
-
+    def velCallback(self, data):
+        self.carVel = data.twist.linear.x
 
     @staticmethod
     def quaternion_from_yaw(yaw):
@@ -113,8 +121,7 @@ class WaypointUpdater(object):
         pass
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
-        pass
+        self.redTlWP = msg.data
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
@@ -158,25 +165,34 @@ class WaypointUpdater(object):
             else:
                 self.currentWPIndex = self.getNextWpIndex()
                 usedWps = []
-                for i in np.arange(self.currentWPIndex, self.currentWPIndex+LOOKAHEAD_WPS):
-                    if(i < len(self.baseWaypoints)-1): 
-                        usedWps.append(self.baseWaypoints[i])
-                        #rospy.logerr('heading:%.3f \nwpX:%.3f wpY:%.3f' %
-                        #         (self.baseWaypoints[i][3], self.baseWaypoints[i][0], self.baseWaypoints[i][1]))
+                brake = False
+                #rospy.logerr("RedTLWp %d currentWp %d", self.redTlWP,self.currentWPIndex)
+                if (self.redTlWP in np.arange(self.currentWPIndex-5, self.currentWPIndex+25) and
+                    self.redTlWP != -1):
+                    brake = True
                 lane = Lane()
                 msgWps = []
-                for waypoint in usedWps:
-                    #if(len(msgWps) == 0):
-                    #    rospy.logerr('heading:%.3f \nwpX:%.3f wpY:%.3f' %
-                    #             (waypoint[3], waypoint[0], waypoint[1]))
+                for i in np.arange(self.currentWPIndex, self.currentWPIndex+LOOKAHEAD_WPS):
+                    if(i >= len(self.baseWaypoints)): i %= len(self.baseWaypoints)
+                    waypoint = self.baseWaypoints[i]
                     msgWp = Waypoint()
                     msgWp.pose.pose.position.x = waypoint[0]
                     msgWp.pose.pose.position.y = waypoint[1] 
                     q = self.quaternion_from_yaw(waypoint[3])
                     msgWp.pose.pose.orientation = Quaternion(*q)
-                    msgWp.twist.twist.linear.x = 10.
+                    if brake and i < self.redTlWP-40:
+                        msgWp.twist.twist.linear.x = 7
+                    elif brake and i < self.redTlWP-10:
+                        msgWp.twist.twist.linear.x = max(min((5.5/30. * (self.redTlWP - i - 10) +2), 7.),1.5)
+                    elif brake and i < self.redTlWP-5:
+                        msgWp.twist.twist.linear.x = 1.5
+                    elif brake:
+                        msgWp.twist.twist.linear.x = 0
+                    else:
+                        msgWp.twist.twist.linear.x =  7
+                    #if(i == self.currentWPIndex): rospy.logerr("Speed %.3f", msgWp.twist.twist.linear.x)
                     msgWps.append(msgWp)
-                    
+                        
                 lane.header.frame_id = '/world'
                 lane.header.stamp = rospy.Time(0)
                 lane.waypoints = msgWps
