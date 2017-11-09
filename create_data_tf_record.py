@@ -58,11 +58,11 @@ def create_dataset_tf_record(data, dictionary):
     classes = []
 
     for box in data['boxes']:
-        xmins.append(box[X_MIN_KEY])
-        xmaxs.append(box[X_MAX_KEY])
-        ymins.append(box[Y_MIN_KEY])
-        ymaxs.append(box[Y_MAX_KEY])
-        classes_text.append(box['label'].encode())
+        xmins.append(box[X_MIN_KEY] / width)
+        xmaxs.append(box[X_MAX_KEY] / width) 
+        ymins.append(box[Y_MIN_KEY] / height)
+        ymaxs.append(box[Y_MAX_KEY] / height)
+        classes_text.append(box['label'].encode('utf8'))
         classes.append(int(dictionary[box['label']]))
     
 
