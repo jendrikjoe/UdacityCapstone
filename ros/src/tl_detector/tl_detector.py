@@ -295,7 +295,7 @@ class TLDetector(object):
                 relStopX = math.cos(yaw)*shiftStopX + math.sin(yaw)*shiftStopY
                 relStopY = -math.sin(yaw)*shiftStopX + math.cos(yaw)*shiftStopY
                 #rospy.loginfo("RelX: %.3f, relY: %.3f, dist:%.1f"%(relStopX, relStopY, np.sqrt(relStopX**2+relStopY**2)))
-                if(relStopX > 0 and relStopX < 100 and smallestDist > np.sqrt(relStopX**2+relStopY**2)):
+                if(relStopX > -2 and relStopX < 100 and smallestDist > np.sqrt(relStopX**2+relStopY**2)):
                     light_wp = i
                     smallestDist = np.sqrt(relStopX**2+relStopY**2)
             

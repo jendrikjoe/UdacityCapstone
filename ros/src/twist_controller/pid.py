@@ -28,9 +28,9 @@ class PID(object):
         val = max(self.min, min(y, self.max))
         
         # windup control for PID
-        if np.abs(integral) > 1000: 
-            self.int_val = np.sign(integral) * 100
-            rospy.logerr("Windup resolved")
+        if np.abs(integral) > 1.5/self.ki: 
+            self.int_val = np.sign(integral) * 1.5/self.ki
+            #rospy.logerr("Windup resolved")
         else: self.int_val = integral
         self.last_error = error
 

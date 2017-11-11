@@ -59,8 +59,6 @@ class DBWNode(object):
         self.cmdAngularVelocity = 0
         self.isDBMEnabled = True
         self.controller = None
-        self.twiddleScale = .3
-        self.meanThrottle = .5
 
         self.vehicle_mass = vehicle_mass
         self.fuel_capacity = fuel_capacity
@@ -75,9 +73,13 @@ class DBWNode(object):
 
         
         if self.twiddleController:
+            self.twiddleState = -1
+            self.twiddleScale = .2
+            self.meanThrottle = .5
             self.error = 1e9
-            self.twiddleStorage = [.04, .1, .4]
-            self.twiddleParams = [.04, .1, .4]
+            self.twiddleStorage = [0.025, 0.234, 0.080]
+            self.twiddleParams = [ 0.025, 0.234, 0.080]
+            self.twiddleMax = .3
             self.twiddle(0, 0)
         else:
             self.controller = Controller(vehicle_mass=self.vehicle_mass, 
@@ -104,7 +106,6 @@ class DBWNode(object):
                 if self.error > self.currentErr:
                     self.error = self.currentErr
                     self.twiddleStorage[:] = self.twiddleParams[:]
-                    self.twiddleState = -1
                     rospy.logerr("New params: %.3f, %.3f, %.3f. With error: %.3f",
                           self.twiddleParams[0], self.twiddleParams[1], 
                           self.twiddleParams[2], self.currentErr )
