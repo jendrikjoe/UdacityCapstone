@@ -58,19 +58,19 @@ def create_dataset_tf_record(data, dictionary):
     classes = []
 
     for box in data['boxes']:
-        xmins.append(box[X_MIN_KEY] / width)
-        xmaxs.append(box[X_MAX_KEY] / width) 
-        ymins.append(box[Y_MIN_KEY] / height)
-        ymaxs.append(box[Y_MAX_KEY] / height)
+        xmins.append(float(box[X_MIN_KEY]) / width)
+        xmaxs.append(float(box[X_MAX_KEY]) / width) 
+        ymins.append(float(box[Y_MIN_KEY]) / height)
+        ymaxs.append(float(box[Y_MAX_KEY]) / height)
+
         classes_text.append(box['label'].encode('utf8'))
         classes.append(int(dictionary[box['label']]))
     
-
     tf_data = tf.train.Example(features=tf.train.Features(feature={
         'image/height': dataset_util.int64_feature(height),
         'image/width': dataset_util.int64_feature(width),
         'image/filename': dataset_util.bytes_feature(file_name),
-        'image_sourceid': dataset_util.bytes_feature(file_name),
+        'image/source_id': dataset_util.bytes_feature(file_name),
         'image/encoded': dataset_util.bytes_feature(encoded_image),
         'image/format': dataset_util.bytes_feature(image_format),
         'image/object/bbox/xmin': dataset_util.float_list_feature(xmins),
@@ -89,18 +89,23 @@ def main(_):
     dictionary = dataset_labels_dict("bosch_label_map.pbtxt")
 
     BASE_PATH = '/mnt/f/capstone data/dataset_train_rgb/'
-    #TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
+    TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
 
-    TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
-    data = yaml.load(open(TRAIN_YAML, 'rb').read())
-    #data = yaml.load(open(TEST_YAML, 'rb').read())
+    #TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
+    #data = yaml.load(open(TRAIN_YAML, 'rb').read())
+    data = yaml.load(open(TEST_YAML, 'rb').read())
 
     print("Currently converting test data : ", len(data))
+
+    # this is for test data only 
+    #data = data[:3972]
+    data = data[:1000]
+    print("Data after chopping off ones without images : ", len(data))
 
     # print("Test Data before fucking loops : ", data[0])
 
     for i in range(len(data)):
-        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TRAIN_YAML), data[i]['path']))
+        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TEST_YAML), data[i]['path']))
         #print(data[i]['path'])
 
 
