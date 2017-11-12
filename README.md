@@ -46,6 +46,6 @@ net_rcnn/faster_rcnn_resnet101_coco.config
 After training is complete, we will need to extract the features to be able to freeze our trained model:
 
 ```
-python export_inference_graph.py --input_type image_tensor --pipeline_config_path ./rcnn_resnet101_coco.config --trained_checkpoint_prefix ./models/train/model.ckpt-5000 --output_directory ./fine_tuned_model
+python export_inference_graph.py --input_type image_tensor --pipeline_config_path ./faster_rcnn_resnet101_coco.config --trained_checkpoint_prefix ./data/train/model.ckpt-2000 --output_directory ./fine_tuned_model
 ```
 
