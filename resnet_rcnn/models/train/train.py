@@ -47,7 +47,7 @@ import os
 import tensorflow as tf
 import sys
 
-lib_path = os.path.abspath(os.path.join('mnt', 'd', 'models', 'research', 'object_detection'))
+lib_path = os.path.abspath(os.path.join('home', 'jendrik', 'git', 'UdacityCapstone', 'resnet_rcnn', 'models', 'train', 'models', 'train'))
 sys.path.append(lib_path)
 
 from object_detection import trainer

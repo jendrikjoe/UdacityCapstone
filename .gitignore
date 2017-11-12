@@ -6,6 +6,7 @@ devel
 
 profile.tmp
 
+resnet_rcnn
 Yolov2TL/data
 Yoloc2TL/darknet19_448.weights
 Yoloc2TL/src/ckpt

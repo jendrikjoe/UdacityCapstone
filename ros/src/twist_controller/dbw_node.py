@@ -70,6 +70,7 @@ class DBWNode(object):
         self.steer_ratio = steer_ratio
         self.max_lat_accel = max_lat_accel
         self.max_steer_angle = max_steer_angle
+        self.twiddleParams = [ 0.025, 0.234, 0.080]
 
         
         if self.twiddleController:
@@ -78,7 +79,6 @@ class DBWNode(object):
             self.meanThrottle = .5
             self.error = 1e9
             self.twiddleStorage = [0.025, 0.234, 0.080]
-            self.twiddleParams = [ 0.025, 0.234, 0.080]
             self.twiddleMax = .3
             self.twiddle(0, 0)
         else:
