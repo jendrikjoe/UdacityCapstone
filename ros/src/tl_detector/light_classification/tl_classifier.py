@@ -109,7 +109,7 @@ class TLClassifier(object):
 				p_depth_x = ((0.1 * fx) / p_width_x)
 				p_depth_y = ((0.3 * fy) / p_width_y)
 
-				e_distance = round((p_depth_x + p_depth_y) = 2.0)
+				e_distance = round((p_depth_x + p_depth_y) / 2.0)
 				print("Traffic is at : ", e_distance, " Away!")
 				print("Current Traffic Light Detected: ", self.current_traffic_light)
-	return self.current_traffic_light
+		return self.current_traffic_light
