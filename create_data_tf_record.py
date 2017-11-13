@@ -1,6 +1,8 @@
 import os
 import yaml
 import tensorflow as tf
+import io
+import PIL.Image
 
 from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
@@ -46,7 +48,13 @@ def create_dataset_tf_record(data, dictionary):
     with tf.gfile.GFile(data['path'], 'rb') as fid:
         encoded_image = fid.read()
     
-    image_format = 'jpeg'
+    encoded_png_io = io.BytesIO(encoded_image)
+    image = PIL.Image.open(encoded_png_io)
+    
+    if image.format != 'PNG':
+        raise ValueError('Image format not PNG')
+    
+    image_format = b'png'
 
     xmins = []
     xmaxs = []
@@ -89,23 +97,23 @@ def main(_):
     dictionary = dataset_labels_dict("bosch_label_map.pbtxt")
 
     BASE_PATH = '/mnt/f/capstone data/dataset_train_rgb/'
-    #TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
+    TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
 
-    TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
-    data = yaml.load(open(TRAIN_YAML, 'rb').read())
-    #data = yaml.load(open(TEST_YAML, 'rb').read())
+    #TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
+    #data = yaml.load(open(TRAIN_YAML, 'rb').read())
+    data = yaml.load(open(TEST_YAML, 'rb').read())
 
     print("Currently converting test data : ", len(data))
 
     # this is for test data only 
-    #data = data[:3972]
+    data = data[:3972]
     #data = data[:3000]
     print("Data after chopping off ones without images : ", len(data))
 
     # print("Test Data before fucking loops : ", data[0])
 
     for i in range(len(data)):
-        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TRAIN_YAML), data[i]['path']))
+        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TEST_YAML), data[i]['path']))
         #print(data[i]['path'])
 
 
