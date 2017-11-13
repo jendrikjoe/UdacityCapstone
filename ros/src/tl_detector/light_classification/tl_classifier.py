@@ -89,11 +89,11 @@ class TLClassifier(object):
 		for i in range(boxes.shape[0]):
 			if scores is not None or scores[i] > TRAFFIC_LIGHT_THRESHOLD:
 				traffic_class = self.category_index[classes[i]['name']]
-				if traffic_class == 'Red':
+				if 'Red' in traffic_class:
 					self.current_traffic_light = TrafficLight.RED
-				elif traffic_class == 'Green':
+				elif 'Green' in traffic_class:
 					self.current_traffic_light = TrafficLight.GREEN
-				elif traffic_class == 'Yellow':
+				elif 'Yellow' in traffic_class:
 					self.current_traffic_light = TrafficLight.YELLOW
 		
 				# Thanks for Anthony Sarkis's and Vatsal Srivastava's blog posts for helping with this part :)
