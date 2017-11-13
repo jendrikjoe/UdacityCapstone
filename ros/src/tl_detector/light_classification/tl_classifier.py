@@ -7,8 +7,8 @@ import tensorflow as tf
 class TLClassifier(object):
 	def __init__(self):
         #TODO load classifier
-		PATH_TO_MODEL = '../../../resnet_rcnn/fine_tuned_model/frozen_inference_graph.pb'
-		PATH_TO_LABELS = '../../../resnet_rcnn/data/bosch_label_map.pbtxt'
+		PATH_TO_MODEL = '../../../../resnet_rcnn/fine_tuned_model/frozen_inference_graph.pb'
+		PATH_TO_LABELS = '../../../../resnet_rcnn/data/bosch_label_map.pbtxt'
 		IMAGE_TENSOR = 'image_tensor:0'
 		BOXES_TENSOR = 'detection_boxes:0'
 		SCORES_TENSOR = 'detection_scores:0'
@@ -17,7 +17,7 @@ class TLClassifier(object):
 		NUM_CLASSES = 14
 
 		TRAFFIC_LIGHT_THRESHOLD = 0.7
-		self.model = {}
+		self.model = None
 
 		self.category_index = {1: {'id': 1, 'name': 'Green'}, 2: {'id': 2, 'name': 'Red'}, 3: {'id': 3, 'name': 'GreenLeft'}, 4: {'id': 4, 'name': 'GreenRight'}, 5: {'id': 5, 'name': 'RedLeft'}, 6: {'id': 6, 'name': 'RedRight'}, 7: {'id': 7, 'name': 'Yellow'}, 8: {'id': 8, 'name': 'off'}, 9: {'id': 9, 'name': 'RedStraight'}, 10: {'id': 10, 'name': 'GreenStraight'}, 11: {'id': 11, 'name': 'GreenStraightLeft'}, 12: {'id': 12, 'name': 'GreenStraightRight'}, 13: {'id': 13, 'name': 'RedStraightLeft'}, 14: {'id': 14, 'name': 'RedStraightRight'}}
 		# Initialize to we really don't know man!
@@ -75,7 +75,7 @@ class TLClassifier(object):
 		#TODO implement light color prediction
 		# checkout https://github.com/lexfridman/deepcars/blob/master/5_tensorflow_traffic_light_classification.ipynb 
 		# Similar to the work done on the notebook
-	        self.get_model()
+		if not self.model: self.get_model()
 	
 		with self.model.as_default():
 			numpy_image = np.expand_dims(image, axis=0)
@@ -112,6 +112,6 @@ class TLClassifier(object):
 				p_depth_y = ((0.3 * fy) / p_width_y)
 
 				e_distance = round((p_depth_x + p_depth_y) / 2.0)
-				print("Traffic is at : ", e_distance, " Away!")
-				print("Current Traffic Light Detected: ", self.current_traffic_light)
+				rospy.logerr("Traffic is at : ", e_distance, " Away!")
+				rospy.logerr("Current Traffic Light Detected: ", self.current_traffic_light)
 		return self.current_traffic_light

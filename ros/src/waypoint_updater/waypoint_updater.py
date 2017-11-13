@@ -167,7 +167,7 @@ class WaypointUpdater(object):
                 usedWps = []
                 brake = False
                 #rospy.logerr("RedTLWp %d currentWp %d", self.redTlWP,self.currentWPIndex)
-                if (self.redTlWP in np.arange(self.currentWPIndex-5, self.currentWPIndex+50) and
+                if (self.redTlWP in np.arange(self.currentWPIndex-5, self.currentWPIndex+60) and
                     self.redTlWP != -1):
                     brake = True
                 lane = Lane()
@@ -180,17 +180,17 @@ class WaypointUpdater(object):
                     msgWp.pose.pose.position.y = waypoint[1] 
                     q = self.quaternion_from_yaw(waypoint[3])
                     msgWp.pose.pose.orientation = Quaternion(*q)
-                    if brake and i < self.redTlWP-50:
+                    if brake and i < self.redTlWP-60:
                         msgWp.twist.twist.linear.x = waypoint[2]#7
-                    elif brake and i < self.redTlWP-5:
-                        msgWp.twist.twist.linear.x = max(min(((waypoint[2]-1.5)/45. * (self.redTlWP - i - 10) +1.5), waypoint[2]),1.5)
-                    elif brake and i < self.redTlWP-1:
+                    elif brake and i < self.redTlWP-8:
+                        msgWp.twist.twist.linear.x = max(min(((waypoint[2]-1.5)/52. * (self.redTlWP - i - 10) +1.5), waypoint[2]),1.5)
+                    elif brake and i < self.redTlWP-4:
                         msgWp.twist.twist.linear.x = 1.5
                     elif brake:
                         msgWp.twist.twist.linear.x = 0
                     else:
                         msgWp.twist.twist.linear.x =  waypoint[2]
-                    if(i == self.currentWPIndex): rospy.logerr("Speed %.3f", msgWp.twist.twist.linear.x)
+                    #if(i == self.currentWPIndex): rospy.logerr("Speed %.3f", msgWp.twist.twist.linear.x)
                     msgWps.append(msgWp)
                         
                 lane.header.frame_id = '/world'

@@ -24,7 +24,7 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
         self.lightWPs = []
-	self.state = TrafficLight.UNKNOWN
+        self.state = TrafficLight.UNKNOWN
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -243,9 +243,10 @@ class TLDetector(object):
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
         # Are these on the center of the traffic light?
         # Use RQT image
-        x, y = self.project_to_image_plane(light)
+        return self.light_classifier.get_classification(cv_image)
+        #x, y = self.project_to_image_plane(light)
         
-        image = cv_image[:]
+        #image = cv_image[:]
 
         try:
             rospy.loginfo("Position in image: %d, %d"%(x,y))
@@ -299,13 +300,13 @@ class TLDetector(object):
             
             #rospy.loginfo("Selected light: %i"%light_wp)
             if light_wp != -1:
-                x, y = self.project_to_image_plane(self.lights[light_wp])
-                if(x > 0 and x < self.config['camera_info']['image_width'] and
-                   y > 0 and y < self.config['camera_info']['image_height']) :
-                    light = self.lights[light_wp]
+                #x, y = self.project_to_image_plane(self.lights[light_wp])
+                #if(x > 0 and x < self.config['camera_info']['image_width'] and
+                #y > 0 and y < self.config['camera_info']['image_height']) :
+                light = self.lights[light_wp]
                     
         if light:
-            state = light.state#self.get_light_state(light)
+            state = self.get_light_state(light)
             return self.lightWPs[light_wp], state
         self.waypoints = None
         return -1, TrafficLight.UNKNOWN

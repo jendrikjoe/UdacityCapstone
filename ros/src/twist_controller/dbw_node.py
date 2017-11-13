@@ -75,8 +75,8 @@ class DBWNode(object):
         
         if self.twiddleController:
             self.twiddleState = -1
-            self.twiddleScale = .2
-            self.meanThrottle = .5
+            self.twiddleScale = .1
+            self.meanThrottle = .6
             self.error = 1e9
             self.twiddleStorage = [0.025, 0.234, 0.080]
             self.twiddleMax = .3

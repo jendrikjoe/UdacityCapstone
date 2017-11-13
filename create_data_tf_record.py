@@ -1,6 +1,8 @@
 import os
 import yaml
 import tensorflow as tf
+import io
+import PIL.Image
 
 from object_detection.utils import dataset_util
 from object_detection.utils import label_map_util
@@ -9,7 +11,7 @@ IMAGE_HEIGHT = 720
 IMAGE_WIDHT = 1280
 
 NUM_CLASSES = 14
-LABELS_PATH= '/mnt/d/models/research'
+LABELS_PATH= '/home/jendrik/git/models/research'
 
 X_MIN_KEY = 'x_min'
 X_MAX_KEY = 'x_max'
@@ -45,8 +47,12 @@ def create_dataset_tf_record(data, dictionary):
 
     with tf.gfile.GFile(data['path'], 'rb') as fid:
         encoded_image = fid.read()
+    encoded_png_io = io.BytesIO(encoded_image)
+    image = PIL.Image.open(encoded_png_io)
     
-    image_format = b'jpg'
+    if image.format != 'PNG':
+        raise ValueError('Image format not PNG')
+    image_format = b'png'
 
     xmins = []
     xmaxs = []
@@ -88,7 +94,7 @@ def main(_):
     list_of_images = []  # place the dataset here
     dictionary = dataset_labels_dict("bosch_label_map.pbtxt")
 
-    BASE_PATH = '/mnt/f/capstone data/dataset_train_rgb/'
+    BASE_PATH = '/home/jendrik/UdacityData/'
     #TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
 
     TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
@@ -113,7 +119,6 @@ def main(_):
     for image in data:
         tf_data = create_dataset_tf_record(image, dictionary)
         writer.write(tf_data.SerializeToString())
-        print("#")
 
     writer.close()
 
