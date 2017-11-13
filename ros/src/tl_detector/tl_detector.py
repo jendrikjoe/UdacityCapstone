@@ -24,6 +24,7 @@ class TLDetector(object):
         self.camera_image = None
         self.lights = []
         self.lightWPs = []
+	self.state = TrafficLight.UNKNOWN
 
         sub1 = rospy.Subscriber('/current_pose', PoseStamped, self.pose_cb)
         sub2 = rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
@@ -48,7 +49,7 @@ class TLDetector(object):
         self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
-        self.last_state = TrafficLight.UNKNOWN if state is None else self.state
+        self.last_state = self.state
         self.state = self.light_classifier.get_classification(self.image_cb) 
         self.last_wp = -1
         self.state_count = 0

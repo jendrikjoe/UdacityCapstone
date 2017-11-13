@@ -2,6 +2,7 @@ import rospy
 from styx_msgs.msg import TrafficLight
 from PIL import Image
 from cv_bridge import CvBridge
+import tensorflow as tf
 
 class TLClassifier(object):
 	def __init__(self):
@@ -16,6 +17,7 @@ class TLClassifier(object):
 		NUM_CLASSES = 14
 
 		TRAFFIC_LIGHT_THRESHOLD = 0.7
+		self.model = {}
 
 		self.category_index = {1: {'id': 1, 'name': 'Green'}, 2: {'id': 2, 'name': 'Red'}, 3: {'id': 3, 'name': 'GreenLeft'}, 4: {'id': 4, 'name': 'GreenRight'}, 5: {'id': 5, 'name': 'RedLeft'}, 6: {'id': 6, 'name': 'RedRight'}, 7: {'id': 7, 'name': 'Yellow'}, 8: {'id': 8, 'name': 'off'}, 9: {'id': 9, 'name': 'RedStraight'}, 10: {'id': 10, 'name': 'GreenStraight'}, 11: {'id': 11, 'name': 'GreenStraightLeft'}, 12: {'id': 12, 'name': 'GreenStraightRight'}, 13: {'id': 13, 'name': 'RedStraightLeft'}, 14: {'id': 14, 'name': 'RedStraightRight'}}
 		# Initialize to we really don't know man!
@@ -47,7 +49,7 @@ class TLClassifier(object):
 			self.d_classes = self.model.get_tensor_by_name(CLASSES_TENSOR)
 			self.d_num_detections = self.model.get_tensor_by_name(NUM_DETECTIONS_TENSOR)
 		self.sess = tf.Session(graph=self.model)
-		
+	'''	
 	def predict_light(self, image):
 		# Load CNN Model
 		"""
@@ -60,6 +62,7 @@ class TLClassifier(object):
 		"""
 		self.get_model()
 		return self.get_classification(image)
+	'''
 
 	def get_classification(self, image):
 		"""Determines the color of the traffic light in the image
@@ -72,7 +75,8 @@ class TLClassifier(object):
 		#TODO implement light color prediction
 		# checkout https://github.com/lexfridman/deepcars/blob/master/5_tensorflow_traffic_light_classification.ipynb 
 		# Similar to the work done on the notebook
-		
+	        self.get_model()
+	
 		with self.model.as_default():
 			numpy_image = np.expand_dims(image, axis=0)
 			(boxes, scores, classes, num_d) = self.sess.run(
