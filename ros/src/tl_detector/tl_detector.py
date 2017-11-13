@@ -50,7 +50,6 @@ class TLDetector(object):
         self.listener = tf.TransformListener()
 
         self.last_state = self.state
-        self.state = self.light_classifier.get_classification(self.image_cb) 
         self.last_wp = -1
         self.state_count = 0
 
@@ -240,24 +239,34 @@ class TLDetector(object):
             self.prev_light_loc = None
             return False
 
-        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
+        cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
+        
         # Are these on the center of the traffic light?
         # Use RQT image
-        return self.light_classifier.get_classification(cv_image)
+        boxes, tl = self.light_classifier.get_classification(cv_image)
         #x, y = self.project_to_image_plane(light)
-        
-        #image = cv_image[:]
-
         try:
-            rospy.loginfo("Position in image: %d, %d"%(x,y))
-            cv2.circle(image,(int(x),int(y)),10,(0,0,255),3) # draw center
+            for box in boxes:
+                #rospy.logerr("Position in image: %d, %d"%(int(box[1]*cv_image.shape[1]),
+                #                                   int(box[0]*cv_image.shape[0])))
+                #rospy.logerr("Position end in image: %d, %d"%(int(box[3]*cv_image.shape[1]),
+                #                                   int(box[2]*cv_image.shape[0])))
+                cv_image = cv2.rectangle(cv_image, (int(box[1]*cv_image.shape[1]),
+                                                   int(box[0]*cv_image.shape[0])),
+                              (int(box[3]*cv_image.shape[1]),int(box[2]*cv_image.shape[0])),
+                              (255,0,0),3) # draw center
         except:
             pass
         try:
-            image = self.bridge.cv2_to_imgmsg(image, "bgr8")
+            image = self.bridge.cv2_to_imgmsg(cv_image, "rgb8")
             self.annImagePub.publish(image)
         except CvBridgeError, e:
             print e
+        return tl
+        
+        #image = cv_image[:]
+
+        
    
         
 
