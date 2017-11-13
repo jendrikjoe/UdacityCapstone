@@ -46,7 +46,7 @@ def create_dataset_tf_record(data, dictionary):
     with tf.gfile.GFile(data['path'], 'rb') as fid:
         encoded_image = fid.read()
     
-    image_format = b'jpg'
+    image_format = 'jpeg'
 
     xmins = []
     xmaxs = []
