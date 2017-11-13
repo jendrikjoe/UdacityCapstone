@@ -48,8 +48,8 @@ class TLDetector(object):
         self.light_classifier = TLClassifier()
         self.listener = tf.TransformListener()
 
-        self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
+        self.last_state = TrafficLight.UNKNOWN if state is None else self.state
+        self.state = self.light_classifier.get_classification(self.image_cb) 
         self.last_wp = -1
         self.state_count = 0
 
