@@ -17,7 +17,7 @@ The provided model based steering controller was used as is.
 ## Transfer learning and deep learning
 
 ### Dataset used
-We decided to use the bosch dataset [!bosch data set](https://hci.iwr.uni-heidelberg.de/node/6132)
+We decided to use the bosch dataset [bosch data set](https://hci.iwr.uni-heidelberg.de/node/6132)
 The bosch dataset had two sets for training and testing.
 
 We have also created our own testing dataset where we took images from the simulator and the traffic light bag
@@ -29,23 +29,20 @@ We have utilized the tensorflow object detection api and its zoo of availble fro
 We have focused on using the Fast Resnet RCNN due to its fast realtime detection.
 
 If you would like to setup the API, you can find instructions here:
-[! Installation Instructions ] (https://github.com/tensorflow/models/blob/18a4e59fd7209422a9fa23c9c950876299ce534d/research/object_detection/g3doc/installation.md)
+[Installation Instructions](https://github.com/tensorflow/models/blob/18a4e59fd7209422a9fa23c9c950876299ce534d/research/object_detection/g3doc/installation.md)
 
-You can see all the models at the zoo here: [! API Model Zoo ](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
+You can see all the models at the zoo here: [API Model Zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
 
 We have used specifically the Resnet RCNN 101 trained on the COCO dataset due to its rich featureset.
 
-Thanks to the awesome post by Anthony Sarkis [!Anthony's Medium Post ](https://medium.com/@anthony_sarkis/self-driving-cars-implementing-real-time-traffic-light-detection-and-classification-in-2017-7d9ae8df1c58)
+Thanks to the awesome post by Anthony Sarkis [Anthony's Medium Post](https://medium.com/@anthony_sarkis/self-driving-cars-implementing-real-time-traffic-light-detection-and-classification-in-2017-7d9ae8df1c58)
 
 The object detection api also offers some samples of train python classes and configurations to easily load
 model's layers and retrain using frozen models
 
-You can find out train.py edited from tensorflow's here:
-[!Train.py](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/models/train/train.py)
+You can find out train.py edited from tensorflow's here:[Train.py](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/models/train/train.py)
 
-There are also sample configs for each of the frozen models, where we could edit to include paths to the frozen model and edit other features such as batch size, and ofcourse classes to be able to further train. Here is our config:
-
-[!coco resnet rcnn config](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/faster_rcnn_resnet101_coco.config)
+There are also sample configs for each of the frozen models, where we could edit to include paths to the frozen model and edit other features such as batch size, and ofcourse classes to be able to further train. Here is our config: [coco resnet rcnn config](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/faster_rcnn_resnet101_coco.config)
 
 To start training as well, here is what your train command would look like:
 
@@ -62,7 +59,7 @@ The Tensorflow Detection API takes in labels in a pbtxt format where we list ite
 
 Our labels pbtxt can be listed and found here:
 
-[! Labeled Classes ](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/data/bosch_label_map.pbtxt)
+[Labeled Classes ](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/data/bosch_label_map.pbtxt)
 
 ### Saving and freezing model
 
@@ -70,7 +67,7 @@ After training, the most important thing to do is to freeze the checkpoint of th
 
 Here is our export features adapted python file:
 
-[! Export and Freeze Model ](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/export_inference_graph.py)
+[Export and Freeze Model ](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/export_inference_graph.py)
 
 When you run it, your command will look something like:
 
@@ -83,7 +80,7 @@ python export_inference_graph.py --input_type image_tensor --pipeline_config_pat
 It was really important to be able to test our model before plugging it into our ros architecture. The best way to do this was to create our own python notebook based on the Tensorflow Object Detection tutorial one.
 
 To view our validation pipeline, here is the notebook with the frozen models loaded to test:
-[! Testing Notebook](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/udacity-traffic-light.ipynb)
+[Testing Notebook](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/udacity-traffic-light.ipynb)
 
 ### Integration with ROS
 
@@ -129,7 +126,7 @@ Then we would read our image, convert it into a numpy array and expand the image
 At this point we have our boxes where the traffic lights are, the scores and our classes. We could then in our tl_classifier decide on what is a minimum threshold where we would consider taking in the boxes, and based on the different classes take an action with our car.
 
 ## References
-https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-2-converting-dataset-to-tfrecord-47f24be9248d
+[Great Tutoria for Object Detection](https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-2-converting-dataset-to-tfrecord-47f24be9248d)
 
-https://github.com/bosch-ros-pkg/bstld
+[Nice Bosch Dataset ROS package](https://github.com/bosch-ros-pkg/bstld)
 
