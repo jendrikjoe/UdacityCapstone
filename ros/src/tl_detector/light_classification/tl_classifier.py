@@ -65,7 +65,20 @@ class TLClassifier(object):
 		if not self.model: self.get_model()
 	
 		with self.model.as_default():
-			image = image.resize((image.height * 0.5, image.width * 0.5))
+			# scale and pad
+			o_height = image.height
+			o_width = image.width
+    		scaled_img = cv2.resize(image, (o_width * 0.5, o_height * 0.5), interpolation=interp)
+    		scaled_img = cv2.copyMakeBorder(
+				scaled_img, 
+				((o_height - image.height) / 2), 
+				((o_height - image.height) / 2), 
+				((o_width - image.width) / 2), 
+				((o_width - image.width) / 2), 
+				borderType=cv2.BORDER_CONSTANT, 
+				value=0)
+
+			image = cv2.opyMakeBorder( src, dst, top, bottom, left, right, borderType, value );
 			numpy_image = np.expand_dims(image, axis=0)
 			(boxes, scores, classes, num_d) = self.sess.run(
 				[self.d_boxes, self.d_scores, self.d_classes, self.d_num_detections],
