@@ -76,16 +76,16 @@ class TLClassifier(object):
 		retBoxes = []
 		scores = np.squeeze(scores)
 		classes = np.squeeze(classes).astype(np.int32)
-
+		tlState = TrafficLight.UNKNOWN
 		for i in range(boxes.shape[0]):
 			if scores is not None and scores[i] > self.TRAFFIC_LIGHT_THRESHOLD:
 				traffic_class = self.category_index[classes[i]]['name']
-				if 'Red' in traffic_class:
-					self.current_traffic_light = TrafficLight.RED
-				elif 'Green' in traffic_class:
-					self.current_traffic_light = TrafficLight.GREEN
-				elif 'Yellow' in traffic_class:
-					self.current_traffic_light = TrafficLight.YELLOW
+				if 'Red' in traffic_class and tlState != TrafficLight.RED:
+					tlState = TrafficLight.RED
+				elif 'Green' in traffic_class and tlState == TrafficLight.UNKNOWN:
+					tlState = TrafficLight.GREEN
+				elif 'Yellow' in traffic_class and tlState not in [TrafficLight.RED, TrafficLight.YELLOW]:
+					tlState = TrafficLight.YELLOW
 		
 				# Thanks for Anthony Sarkis's and Vatsal Srivastava's blog posts for helping with this part :)
 				# https://becominghuman.ai/traffic-light-detection-tensorflow-api-c75fdbadac62
@@ -100,9 +100,10 @@ class TLClassifier(object):
 				p_depth_x = ((0.1 * fx) / p_width_x)
 				p_depth_y = ((0.3 * fy) / p_width_y)
 				retBoxes.append(boxes[i])
-				rospy.logerr("Score [%.3f]", scores[i])
+				#rospy.logerr("Score [%.3f]", scores[i])
 				#rospy.logerr("Box [%.3f,%.3f,%.3f,%.3f]", boxes[i][0], boxes[i][1], 
 			#				boxes[i][2], boxes[i][3])
 
 				e_distance = round((p_depth_x + p_depth_y) / 2.0)
+			self.current_traffic_light = tlState if tlState != TrafficLight.UNKNOWN else self.current_traffic_light
 		return retBoxes, self.current_traffic_light

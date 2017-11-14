@@ -226,7 +226,7 @@ class TLDetector(object):
     
 
     def get_light_state(self, light):
-        pad = 150
+        pad = 200
         """Determines the current color of the traffic light
 
         Args:

@@ -163,20 +163,20 @@ class DBWNode(object):
     def loop(self):
         rate = rospy.Rate(50) # 20Hz
         while not rospy.is_shutdown():
-            
-            throttle, brake, steer = self.controller.control(
-				self.cmdVelocity, 
-				self.cmdAngularVelocity, 
-				self.currentVelocity
-			)
-            #rospy.logerr('Control: %.3f is %.3f throttle %.3f brake %.3f', 
-            #             self.cmdVelocity, self.currentVelocity, throttle, brake)
-            if self.twiddleController:
-                self.currentErr += 2*np.abs(self.meanThrottle-throttle)
-                self.meanThrottle = 0.999*self.meanThrottle + 0.001*throttle
-                self.currentErr += brake
-            #rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % (throttle, brake, steer))
             if self.isDBMEnabled:
+                throttle, brake, steer = self.controller.control(
+    				self.cmdVelocity, 
+    				self.cmdAngularVelocity, 
+    				self.currentVelocity
+    			)
+                #rospy.logerr('Control: %.3f is %.3f throttle %.3f brake %.3f', 
+                #             self.cmdVelocity, self.currentVelocity, throttle, brake)
+                if self.twiddleController:
+                    self.currentErr += 2*np.abs(self.meanThrottle-throttle)
+                    self.meanThrottle = 0.999*self.meanThrottle + 0.001*throttle
+                    self.currentErr += brake
+                #rospy.logerr('Commanding. Throttle:%.3f Brake:%.3f Steer:%.3f' % (throttle, brake, steer))
+                
                 self.publish(throttle, brake, steer)
             else:
                 # TODO: Come up with a better strategy. For now come to a complete hauld
