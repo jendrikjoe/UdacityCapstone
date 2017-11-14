@@ -5,6 +5,7 @@
 [Image credit to Startups.co since we got it from a google image search referencing their blog]()
 
 Jendrik Joerdening : jendrik.joerdening@outlook.de
+
 Rana Khalil: rana.ae.khalil@gmail.com
 
 ## Waypoint Updater
@@ -75,7 +76,7 @@ After training, the most important thing to do is to freeze the checkpoint of th
 
 Here is our export features adapted python file:
 
-[Export and Freeze Model ](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/export_inference_graph.py)
+[Export and Freeze Model](https://github.com/jendrikjoe/UdacityCapstone/blob/master/resnet_rcnn/export_inference_graph.py)
 
 When you run it, your command will look something like:
 
