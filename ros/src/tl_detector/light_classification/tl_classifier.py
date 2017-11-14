@@ -39,11 +39,7 @@ class TLClassifier(object):
 		with self.model.as_default():
 			graph_def = self.model.as_graph_def()
 			# Like in the notebook
-<<<<<<< HEAD
 			with tf.gfile.GFile(self.PATH_TO_MODEL, 'rb') as fid:
-=======
-			with tf.gfile.GFile(self.path_to_model, 'rb') as fid:
->>>>>>> 37f5c6eadb415796d84af07eca9b67c4ae9b1a6b
 				serialized_graph = fid.read()
 				graph_def.ParseFromString(serialized_graph)
 				tf.import_graph_def(graph_def, name='')
