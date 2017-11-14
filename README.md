@@ -1,7 +1,8 @@
 
 # Team Beta-Testers 
 ![Beta Testers](https://d3o1wlpkmt4nt9.cloudfront.net/wp-content/uploads/2016/04/20182258/find-beta-testers.jpg)
-![Image credit to Startups.co since we got it from a google image search referencing their blog]
+
+[Image credit to Startups.co since we got it from a google image search referencing their blog]()
 
 Jendrik Joerdening : jendrik.joerdening@outlook.de
 Rana Khalil: rana.ae.khalil@gmail.com
