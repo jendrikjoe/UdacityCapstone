@@ -53,7 +53,6 @@ class TLClassifier(object):
 		self.sess = tf.Session(graph=self.model)
 
 	def get_classification(self, image):
-		pad = 100
 		"""Determines the color of the traffic light in the image
 		Args:
 			image (cv::Mat): image containing the traffic light
