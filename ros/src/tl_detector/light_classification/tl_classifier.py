@@ -8,7 +8,7 @@ import numpy as np
 class TLClassifier(object):
 	def __init__(self):
         #TODO load classifier
-		self.PATH_TO_MODEL = '../../../resnet_rcnn/fine_tuned_model/frozen_inference_graph.pb'
+		self.PATH_TO_MODEL = '../../../resnet_rcnn/fine_tuned_model/frozen_inference_graphNew.pb'
 		self.PATH_TO_LABELS = '../../../resnet_rcnn/data/bosch_label_map.pbtxt'
 		self.IMAGE_TENSOR = 'image_tensor:0'
 		self.BOXES_TENSOR = 'detection_boxes:0'
@@ -50,20 +50,6 @@ class TLClassifier(object):
 			self.d_classes = self.model.get_tensor_by_name(self.CLASSES_TENSOR)
 			self.d_num_detections = self.model.get_tensor_by_name(self.NUM_DETECTIONS_TENSOR)
 		self.sess = tf.Session(graph=self.model)
-	'''	
-	def predict_light(self, image):
-		# Load CNN Model
-		"""
-		prediction = {}  #self.loaded_model.predict(image_array[None, :])
-		if prediction[0][0] == 1:
-			return TrafficLight.GREEN
-		elif prediction[0][1] == 1:
-			return TrafficLight.RED
-		else:
-		"""
-		self.get_model()
-		return self.get_classification(image)
-	'''
 
 	def get_classification(self, image):
 		"""Determines the color of the traffic light in the image
@@ -79,6 +65,7 @@ class TLClassifier(object):
 		if not self.model: self.get_model()
 	
 		with self.model.as_default():
+			image = image.resize((image.height * 0.5, image.width * 0.5))
 			numpy_image = np.expand_dims(image, axis=0)
 			(boxes, scores, classes, num_d) = self.sess.run(
 				[self.d_boxes, self.d_scores, self.d_classes, self.d_num_detections],
