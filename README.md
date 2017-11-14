@@ -134,6 +134,20 @@ Then we would read our image, convert it into a numpy array and expand the image
 
 At this point we have our boxes where the traffic lights are, the scores and our classes. We could then in our tl_classifier decide on what is a minimum threshold where we would consider taking in the boxes, and based on the different classes take an action with our car.
 
+## Instructions before running
+
+Please download our frozen model from the following link:
+
+[Frozen model](https://drive.google.com/open?id=1EKCnrCjB02ujKnocS0aelwJhDhgMNh_S)
+
+Please place the model in the following folder structure:
+
+```
+resnet_rcnn/fine_tuned_model/
+```
+
+Then you will be set to launch site.launch
+
 ## References
 [Great Tutoria for Object Detection](https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-2-converting-dataset-to-tfrecord-47f24be9248d)
 
