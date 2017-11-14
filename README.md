@@ -125,6 +125,11 @@ Then we would read our image, convert it into a numpy array and expand the image
 
 At this point we have our boxes where the traffic lights are, the scores and our classes. We could then in our tl_classifier decide on what is a minimum threshold where we would consider taking in the boxes, and based on the different classes take an action with our car.
 
+## Team:
+
+Jendrik Joerdening : jendrik.joerdening@outlook.de
+Rana Khalil: rana.ae.khalil@gmail.com
+
 ## References
 [Great Tutoria for Object Detection](https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-2-converting-dataset-to-tfrecord-47f24be9248d)
 
