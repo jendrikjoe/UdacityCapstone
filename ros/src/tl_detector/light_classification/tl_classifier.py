@@ -4,6 +4,7 @@ from PIL import Image
 from cv_bridge import CvBridge
 import tensorflow as tf
 import numpy as np
+import cv2
 
 class TLClassifier(object):
 	def __init__(self):
@@ -17,7 +18,7 @@ class TLClassifier(object):
 		self.NUM_DETECTIONS_TENSOR = 'num_detections:0'
 		self.NUM_CLASSES = 14
 
-		self.TRAFFIC_LIGHT_THRESHOLD = 0.01
+		self.TRAFFIC_LIGHT_THRESHOLD = 0.1
 		self.model = None
 
 		self.category_index = {1: {'id': 1, 'name': 'Green'}, 2: {'id': 2, 'name': 'Red'}, 3: {'id': 3, 'name': 'GreenLeft'}, 4: {'id': 4, 'name': 'GreenRight'}, 5: {'id': 5, 'name': 'RedLeft'}, 6: {'id': 6, 'name': 'RedRight'}, 7: {'id': 7, 'name': 'Yellow'}, 8: {'id': 8, 'name': 'off'}, 9: {'id': 9, 'name': 'RedStraight'}, 10: {'id': 10, 'name': 'GreenStraight'}, 11: {'id': 11, 'name': 'GreenStraightLeft'}, 12: {'id': 12, 'name': 'GreenStraightRight'}, 13: {'id': 13, 'name': 'RedStraightLeft'}, 14: {'id': 14, 'name': 'RedStraightRight'}}
@@ -52,6 +53,7 @@ class TLClassifier(object):
 		self.sess = tf.Session(graph=self.model)
 
 	def get_classification(self, image):
+		pad = 100
 		"""Determines the color of the traffic light in the image
 		Args:
 			image (cv::Mat): image containing the traffic light
@@ -65,7 +67,6 @@ class TLClassifier(object):
 		if not self.model: self.get_model()
 	
 		with self.model.as_default():
-			image = image.resize((image.height * 0.5, image.width * 0.5))
 			numpy_image = np.expand_dims(image, axis=0)
 			(boxes, scores, classes, num_d) = self.sess.run(
 				[self.d_boxes, self.d_scores, self.d_classes, self.d_num_detections],

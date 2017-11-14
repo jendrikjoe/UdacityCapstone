@@ -226,6 +226,7 @@ class TLDetector(object):
     
 
     def get_light_state(self, light):
+        pad = 150
         """Determines the current color of the traffic light
 
         Args:
@@ -240,7 +241,8 @@ class TLDetector(object):
             return False
 
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "rgb8")
-        
+        cv_image = cv2.copyMakeBorder(cv_image, pad, pad, pad, pad, borderType=cv2.BORDER_CONSTANT, value=0)
+            
         # Are these on the center of the traffic light?
         # Use RQT image
         boxes, tl = self.light_classifier.get_classification(cv_image)
@@ -255,6 +257,7 @@ class TLDetector(object):
                                                    int(box[0]*cv_image.shape[0])),
                               (int(box[3]*cv_image.shape[1]),int(box[2]*cv_image.shape[0])),
                               (255,0,0),3) # draw center
+            cv_image = cv_image[pad:-pad, pad:-pad]
         except:
             pass
         try:
