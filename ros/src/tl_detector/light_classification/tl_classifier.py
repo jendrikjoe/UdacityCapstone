@@ -35,11 +35,15 @@ class TLClassifier(object):
 		# Thanks for tensorflow and for Daniel Stang's tutorial for this part and training with the Object API
 		# https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-4-training-the-model-68a9e5d5a333
 
-		self.model = tf.Graph()
+		self.model = tf.get_default_graph()
 		with self.model.as_default():
-			graph_def = tf.GraphDef()
+			graph_def = self.model.as_graph_def()
 			# Like in the notebook
+<<<<<<< HEAD
 			with tf.gfile.GFile(self.PATH_TO_MODEL, 'rb') as fid:
+=======
+			with tf.gfile.GFile(self.path_to_model, 'rb') as fid:
+>>>>>>> 37f5c6eadb415796d84af07eca9b67c4ae9b1a6b
 				serialized_graph = fid.read()
 				graph_def.ParseFromString(serialized_graph)
 				tf.import_graph_def(graph_def, name='')

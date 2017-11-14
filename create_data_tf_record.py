@@ -50,8 +50,17 @@ def create_dataset_tf_record(data, dictionary):
     encoded_png_io = io.BytesIO(encoded_image)
     image = PIL.Image.open(encoded_png_io)
     
+<<<<<<< HEAD
     if image.format != 'PNG':
         raise ValueError('Image format not PNG')
+=======
+    encoded_png_io = io.BytesIO(encoded_image)
+    image = PIL.Image.open(encoded_png_io)
+    
+    if image.format != 'PNG':
+        raise ValueError('Image format not PNG')
+    
+>>>>>>> 37f5c6eadb415796d84af07eca9b67c4ae9b1a6b
     image_format = b'png'
 
     xmins = []
@@ -94,24 +103,29 @@ def main(_):
     list_of_images = []  # place the dataset here
     dictionary = dataset_labels_dict("bosch_label_map.pbtxt")
 
+<<<<<<< HEAD
     BASE_PATH = '/home/jendrik/UdacityData/'
     #TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
+=======
+    BASE_PATH = '/mnt/f/capstone data/dataset_train_rgb/'
+    TEST_YAML = BASE_PATH + 'dataset_test_rgb_bosch/test.yaml'
+>>>>>>> 37f5c6eadb415796d84af07eca9b67c4ae9b1a6b
 
-    TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
-    data = yaml.load(open(TRAIN_YAML, 'rb').read())
-    #data = yaml.load(open(TEST_YAML, 'rb').read())
+    #TRAIN_YAML = BASE_PATH + 'dataset_train_rgb/train.yaml'
+    #data = yaml.load(open(TRAIN_YAML, 'rb').read())
+    data = yaml.load(open(TEST_YAML, 'rb').read())
 
     print("Currently converting test data : ", len(data))
 
     # this is for test data only 
-    #data = data[:3972]
+    data = data[:3972]
     #data = data[:3000]
     print("Data after chopping off ones without images : ", len(data))
 
     # print("Test Data before fucking loops : ", data[0])
 
     for i in range(len(data)):
-        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TRAIN_YAML), data[i]['path']))
+        data[i]['path'] = os.path.abspath(os.path.join(os.path.dirname(TEST_YAML), data[i]['path']))
         #print(data[i]['path'])
 
 
