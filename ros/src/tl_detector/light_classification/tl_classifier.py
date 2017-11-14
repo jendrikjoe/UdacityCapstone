@@ -7,7 +7,7 @@ import tensorflow as tf
 class TLClassifier(object):
 	def __init__(self):
         #TODO load classifier
-		self.path_to_model = '../../../resnet_rcnn/fine_tuned_model/frozen_inference_graph.pb'
+		self.path_to_model = '../../../fine_tuned_model/frozen_inference_graph.pb'
 
 		self.IMAGE_TENSOR = 'image_tensor:0'
 		self.BOXES_TENSOR = 'detection_boxes:0'
