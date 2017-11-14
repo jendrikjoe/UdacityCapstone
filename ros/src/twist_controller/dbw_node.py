@@ -57,7 +57,7 @@ class DBWNode(object):
         self.currentAngularVelocity = 0
         self.cmdVelocity = 0
         self.cmdAngularVelocity = 0
-        self.isDBMEnabled = True
+        self.isDBWEnabled = False
         self.controller = None
 
         self.vehicle_mass = vehicle_mass
@@ -144,8 +144,8 @@ class DBWNode(object):
     
     def dbwEnabledCallback(self, data):
         try:
-            self.isDBMEnabled = data.dbw_status
-        except: pass
+            self.isDBWEnabled = data.data
+        except Exception as e: rospy.logerr(e)
 
     def velCallback(self, data):
         #rospy.loginfo('Got velocity data. ' + data.__str__())
@@ -163,7 +163,7 @@ class DBWNode(object):
     def loop(self):
         rate = rospy.Rate(50) # 20Hz
         while not rospy.is_shutdown():
-            if self.isDBMEnabled:
+            if self.isDBWEnabled:
                 throttle, brake, steer = self.controller.control(
     				self.cmdVelocity, 
     				self.cmdAngularVelocity, 
