@@ -5,12 +5,15 @@ from cv_bridge import CvBridge
 import tensorflow as tf
 import numpy as np
 import cv2
+import os
+
+cwd = os.getcwd()
 
 class TLClassifier(object):
 	def __init__(self):
         #TODO load classifier
-		self.PATH_TO_MODEL = '../../../resnet_rcnn/fine_tuned_model/frozen_inference_graphNew.pb'
-		self.PATH_TO_LABELS = '../../../resnet_rcnn/data/bosch_label_map.pbtxt'
+		self.PATH_TO_MODEL = cwd + '/light_classification/resnet_rcnn/frozen_inference_graph.pb'
+		self.PATH_TO_LABELS = cwd + '/light_classification/resnet_rcnn/data/bosch_label_map.pbtxt'
 		self.IMAGE_TENSOR = 'image_tensor:0'
 		self.BOXES_TENSOR = 'detection_boxes:0'
 		self.SCORES_TENSOR = 'detection_scores:0'
@@ -40,6 +43,7 @@ class TLClassifier(object):
 		with self.model.as_default():
 			graph_def = self.model.as_graph_def()
 			# Like in the notebook
+			print("Check if file exists : ", tf.gfile.Exists(self.PATH_TO_MODEL))
 			with tf.gfile.GFile(self.PATH_TO_MODEL, 'rb') as fid:
 				serialized_graph = fid.read()
 				graph_def.ParseFromString(serialized_graph)
