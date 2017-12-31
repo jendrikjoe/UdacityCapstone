@@ -153,7 +153,7 @@ Then you will be set to launch site.launch
 CUDA will need a moments once you launch the dbw node in the project. So please launch and wait few seconds :)
 
 ## References
-[Great Tutoria for Object Detection](https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-2-converting-dataset-to-tfrecord-47f24be9248d)
+[Great Tutorial for Object Detection](https://medium.com/@WuStangDan/step-by-step-tensorflow-object-detection-api-tutorial-part-2-converting-dataset-to-tfrecord-47f24be9248d)
 
 [Nice Bosch Dataset ROS package](https://github.com/bosch-ros-pkg/bstld)
 
